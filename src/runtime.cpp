@@ -18,6 +18,8 @@
 
 #include "../Uranium/Debug.h"
 #include "../Uranium/Types.h"
+#include "../Uranium/Table.h"
+
 
 static void lua_close_checked(lua_State* L)
 {
@@ -458,6 +460,7 @@ bool Runtime::runSource(const std::string& source, const Luau::CompileOptions& c
     return runBytecode(bytecode, chunkname, argc, argv);
 }
 
+// using func = int(lua_State* lua_state_ptr);
 
 void push_debug_lib(lua_State* lua_state_ptr, const char* func_name_str, lua_CFunction func)
 {
@@ -487,10 +490,12 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     //push_generic_global(lua_state_ptr, "setrawmetatable", debug_setmetatable);
     std::vector<function_table_struct>function_table =
     {
-    {debug_getmetatable, {"getrawmetatable", "debug_getmetatable"}},
-    {debug_setmetatable, {"getrawmetatable", "debug_setmetatable"}},
-    {debug_getconstants, {"getconstants", "get_constants"}},
-    {debug_getupvalues, {"getupvalues", "get_upvalues"}},
+    {debug_getmetatable, {"getrawmetatable", "debug_getmetatable", "getRawMetatable", "get_raw_metatable", "getRawMetatable", "setRawMT", "get_raw_mt", "getrawmt", "GetRawMetatable"}},
+    {debug_setmetatable, {"setrawmetatable", "debug_setmetatable", "setRawMetatable", "setRawMT", "set_raw_mt", "setrawmt", "SetRawMetatable"}},
+    {debug_getconstants, {"getconstants", "get_constants", "getConstants", "GetConstants"}},
+    {debug_getupvalues, {"getupvalues", "get_upvalues", "getUpValues", "GetUpValues"}},
+    {setreadonly, {"setreadonly", "set_readonly", "set_read_only", "setReadOnly", "SetReadOnly"}},
+    {isreadonly, {"is_read_only", "isreadonly", "IsReadOnly", "isReadOnly"}},
     };
     for (const function_table_struct& entry: function_table)
     {
@@ -507,6 +512,7 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
 
 lua_State* setupState(Runtime& runtime, std::function<void(lua_State*)> doBeforeSandbox)
 {
+    // Separate VM for data copies
     runtime.dataCopy.reset(luaL_newstate());
 
     runtime.globalState.reset(luaL_newstate());
@@ -517,6 +523,7 @@ lua_State* setupState(Runtime& runtime, std::function<void(lua_State*)> doBefore
 
     lua_setthreaddata(L, &runtime);
 
+    // register the builtin tables
     luaL_openlibs(L);
     setup_custom_enviorment(L);
 
