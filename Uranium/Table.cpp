@@ -1,9 +1,11 @@
 #include "lua.h"
 #include "lualib.h"
 #include <iostream>
+#include <cstring>
 #include "lapi.h"
 #include "lobject.h"
 #include "Table.h"
+#include "Luau/Common.h"
 int isreadonly(lua_State* lua_state_ptr)
 {
     lua_checkstack(lua_state_ptr, 1);
@@ -45,5 +47,39 @@ int setnamecallmethod(lua_State* lua_state_ptr)
     //const char* provided_method = lua_tostring(lua_state_ptr, 1); // apparenlty this is unsafe, i'll have to look into it later
     //std :: cout << provided_method << std :: endl;
     lua_state_ptr->namecall = tsvalue(luaA_toobject(lua_state_ptr, 1));
+    return 0;
+}
+int iswriteable(lua_State* lua_state_ptr)
+{
+    lua_checkstack(lua_state_ptr, 1);
+    luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
+    LuaTable* table_ptr = hvalue(luaA_toobject(lua_state_ptr, 1));
+    uint8_t readonly = table_ptr->readonly;
+    lua_pushboolean(lua_state_ptr, readonly == 0);
+    return 1;
+}
+int getfflag(lua_State* lua_state_ptr)
+{
+    lua_checkstack(lua_state_ptr, 1);
+    luaL_checktype(lua_state_ptr, 1, LUA_TSTRING);
+    const char* name = luaL_checkstring(lua_state_ptr, 1);
+    for (Luau::FValue<bool>* flag = Luau::FValue<bool>::list; flag; flag = flag->next)
+    {
+        if (strcmp(flag->name, name) == 0)
+        {
+            lua_pushboolean(lua_state_ptr, flag->value);
+            return 1;
+        }
+    }
+    for (Luau::FValue<int>* flag = Luau::FValue<int>::list; flag; flag = flag->next)
+    {
+        //std :: cout << "bro can we like work ok??" << std :: endl;
+        if (strcmp(flag->name, name) == 0)
+        {
+            lua_pushinteger(lua_state_ptr, flag->value);
+            return 1;
+        }
+    }
+    luaL_argerrorL(lua_state_ptr, 1, "Illegal Flag Name");
     return 0;
 }

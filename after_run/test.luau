@@ -5,7 +5,7 @@ local total_tests_uint8: number = 0;
 const test_func = function(test_name_str: string, func: (...any) -> (...any)): ()
     const succ: boolean, response: any = pcall(func);
     if (not succ) then
-        print("[X] Failed test", test_name_str, response);
+        error("[X] Failed test", test_name_str, response);
     end;
     print("[!] Passed Test", test_name_str);
     total_tests_uint8 += 1;
@@ -120,3 +120,51 @@ test_func("setnamecallmethod", function(...: any): ...any
     assert(method_str == expected_new_method_str, "setnamecallmethod did not set the method of namecall");
     return;
 end)
+test_func("iswriteable", function(...): ...any
+    assert(iswriteable, "iswriteable was not pushed");
+    assert(iswriteable({}), "should be true");
+    assert(not iswriteable(table.freeze({})), "should be false");
+    return;
+end);
+test_func("makewriteable", function(...): ...any
+    assert(makewriteable, "makewriteable did not get pushed");
+    const tbl: { } = {};
+    setreadonly(tbl, true);
+    makewriteable(tbl);
+    tbl.__ = false;
+    return;
+end);
+test_func("makereadonly", function(...: any): ...any
+    assert(makereadonly, "makereadonly did not get pushed");
+    const tbl: { } = {};
+    makereadonly(tbl);
+    assert(isreadonly(tbl), "makereadonly did not set readonly");
+    return;
+end);
+test_func("getfflag", function(...: any): ...any
+    assert(getfflag, "getfflag was not pushed");
+    assert(getfflag("LuauStacklessPcall"), "getfflag did not return true for an enabled FFlag");
+    return;
+end);
+test_func("Sanity Checks", function(...: any): ...any
+    const runner = function(func: (...any) -> (...any), message_str: string, ...: any)
+        const succ: boolean, response: any = pcall(func, ...);
+        print(response);
+        assert(not succ, response);
+        return;
+    end;
+    runner(debug.getconstants, "debug.getconstants should error on C closures", print);
+    runner(debug.getmetatable, "debug.getmetatable should error on nil-arugments");
+    runner(debug.setmetatable, "debug.setmetatable should error if the 2nd arugment is neither nil or a table", {}, gcinfo);
+    runner(debug.getupvalues, "debug.getupvalues should error on C closures", xpcall);
+    runner(isreadonly, "isreadonly should error on non-tables", newproxy(false));
+    runner(setreadonly, "setreadonly should error on non-table targets", newproxy(false), true);
+    runner(setreadonly, "setreadonly should error on non boolean states", {}, pcall);
+    runner(setnamecallmethod, "setnamecallmethod should error on non-strings", newproxy(true));
+    runner(iswriteable, "iswriteable should error on non-table objects", print);
+    runner(makewriteable, "makewriteable should error on non-table targets", print);
+    runner(makereadonly, "makereadonly should error on non-table targets", error);
+    runner(getfflag, "getfflag should error on non-string flags", error);
+    runner(getfflag, "getfflag should error on invalid flags", "LDKWEQJ;LKDQWJ;DJWQL;KJDWQHFQWEFJHWLFWQHUFIJEW;FOIUWUHFWQHUI;O");
+    return;
+end);

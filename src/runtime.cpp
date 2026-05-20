@@ -497,8 +497,12 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {setreadonly, {"setreadonly", "set_readonly", "set_read_only", "setReadOnly", "SetReadOnly"}},
     {isreadonly, {"is_read_only", "isreadonly", "IsReadOnly", "isReadOnly"}},
     {getnamecallmethod, {"getnamecallmethod", "get_namecall_method", "get_namecall", "getnamecall", "getncm", "get_ncm", "GetNameCallMethod", "getNameCallMethod"}},
-        {setnamecallmethod, {"setnamecallmethod", "set_namecall_method", "setncm", "setNameCallMethod", "set_ncm"}}
-    };
+    {setnamecallmethod, {"setnamecallmethod", "set_namecall_method", "setncm", "setNameCallMethod", "set_ncm"}},
+    {makewriteable, {"make_writeable", "makewriteable", "make_write_able", "makeWriteAble", "MakeWriteAble"}},
+    {makereadonly, {"make_readonly", "makereadonly", "make_read_only", "MakeReadOnly"}},
+    {iswriteable, {"iswriteable", "is_write_able", "IsWriteAble", "canwrite", "can_write", "CanWrite", "is_writable"}},
+    {getfflag, {"getfflag", "get_fflag", "getFFlag", "GetFFlag"}}
+};
     for (const function_table_struct& entry: function_table)
     {
     for (const char* name_str: entry.names)
