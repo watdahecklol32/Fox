@@ -93,3 +93,30 @@ test_func("setreadonly", function(...: any): ...any
     assert(not isreadonly(thing), "setreadonly does not make tables write-able");
     return;
 end);
+test_func("getnamecallmethod", function(...): ...any
+    assert(getnamecallmethod, "getnamecallmethod was not pushed");
+    const proxy: any = newproxy(true);
+    const expected_method_str: string = "hi";
+    local method_str: string;
+    getmetatable(proxy).__namecall = function(...: any): ()
+        method_str = getnamecallmethod();
+        return;
+    end;
+    proxy:hi();
+    assert(method_str == expected_method_str, "getnamecallmethod did not return the correct method");
+    return;
+end);
+test_func("setnamecallmethod", function(...: any): ...any
+    assert(setnamecallmethod, "setnamecallmethod was not pushed");
+    const proxy: any = newproxy(true);
+    const expected_new_method_str: string = "bye";
+    local method_str: string;
+    getmetatable(proxy).__namecall = function(...: any): ()
+        setnamecallmethod("bye");
+        method_str = getnamecallmethod();
+        return;
+    end;
+    proxy:hi();
+    assert(method_str == expected_new_method_str, "setnamecallmethod did not set the method of namecall");
+    return;
+end)

@@ -496,6 +496,8 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {debug_getupvalues, {"getupvalues", "get_upvalues", "getUpValues", "GetUpValues"}},
     {setreadonly, {"setreadonly", "set_readonly", "set_read_only", "setReadOnly", "SetReadOnly"}},
     {isreadonly, {"is_read_only", "isreadonly", "IsReadOnly", "isReadOnly"}},
+    {getnamecallmethod, {"getnamecallmethod", "get_namecall_method", "get_namecall", "getnamecall", "getncm", "get_ncm", "GetNameCallMethod", "getNameCallMethod"}},
+        {setnamecallmethod, {"setnamecallmethod", "set_namecall_method", "setncm", "setNameCallMethod", "set_ncm"}}
     };
     for (const function_table_struct& entry: function_table)
     {
