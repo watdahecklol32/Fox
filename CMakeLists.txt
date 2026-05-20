@@ -7,7 +7,7 @@ target_sources(Lute.Runtime PRIVATE
     include/lute/uvrequest.h
     include/lute/uvstream.h
     include/lute/uvutils.h
-    Uranium/Types.h
+    Uranium/Types.hpp
     src/ref.cpp
     src/runtime.cpp
     src/uvrequest.cpp

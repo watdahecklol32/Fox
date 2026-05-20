@@ -16,9 +16,9 @@
 #include <string>
 #include <vector>
 
-#include "../Uranium/Debug.h"
-#include "../Uranium/Types.h"
-#include "../Uranium/Table.h"
+#include "../Uranium/Debug.hpp"
+#include "../Uranium/Types.hpp"
+#include "../Uranium/Table.hpp"
 
 
 static void lua_close_checked(lua_State* L)
@@ -482,26 +482,28 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
 {
     luaL_openlibs(lua_state_ptr);
     
-    push_debug_lib(lua_state_ptr, "getmetatable", debug_getmetatable);
-    push_debug_lib(lua_state_ptr, "setmetatable", debug_setmetatable);
-    push_debug_lib(lua_state_ptr, "getconstants", debug_getconstants);
-    push_debug_lib(lua_state_ptr, "getupvalues", debug_getupvalues);
+    push_debug_lib(lua_state_ptr, "getmetatable", Uranium::debug_getmetatable);
+    push_debug_lib(lua_state_ptr, "setmetatable", Uranium::debug_setmetatable);
+    push_debug_lib(lua_state_ptr, "getconstants", Uranium::debug_getconstants);
+    push_debug_lib(lua_state_ptr, "getupvalues", Uranium::debug_getupvalues);
     // push_generic_global(lua_state_ptr, "getrawmetatable", debug_getmetatable);
     //push_generic_global(lua_state_ptr, "setrawmetatable", debug_setmetatable);
     std::vector<function_table_struct>function_table =
     {
-    {debug_getmetatable, {"getrawmetatable", "debug_getmetatable", "getRawMetatable", "get_raw_metatable", "getRawMetatable", "setRawMT", "get_raw_mt", "getrawmt", "GetRawMetatable"}},
-    {debug_setmetatable, {"setrawmetatable", "debug_setmetatable", "setRawMetatable", "setRawMT", "set_raw_mt", "setrawmt", "SetRawMetatable"}},
-    {debug_getconstants, {"getconstants", "get_constants", "getConstants", "GetConstants"}},
-    {debug_getupvalues, {"getupvalues", "get_upvalues", "getUpValues", "GetUpValues"}},
-    {setreadonly, {"setreadonly", "set_readonly", "set_read_only", "setReadOnly", "SetReadOnly"}},
-    {isreadonly, {"is_read_only", "isreadonly", "IsReadOnly", "isReadOnly"}},
-    {getnamecallmethod, {"getnamecallmethod", "get_namecall_method", "get_namecall", "getnamecall", "getncm", "get_ncm", "GetNameCallMethod", "getNameCallMethod"}},
-    {setnamecallmethod, {"setnamecallmethod", "set_namecall_method", "setncm", "setNameCallMethod", "set_ncm"}},
-    {makewriteable, {"make_writeable", "makewriteable", "make_write_able", "makeWriteAble", "MakeWriteAble"}},
-    {makereadonly, {"make_readonly", "makereadonly", "make_read_only", "MakeReadOnly"}},
-    {iswriteable, {"iswriteable", "is_write_able", "IsWriteAble", "canwrite", "can_write", "CanWrite", "is_writable"}},
-    {getfflag, {"getfflag", "get_fflag", "getFFlag", "GetFFlag"}}
+    {Uranium::debug_getmetatable, {"getrawmetatable", "debug_getmetatable", "getRawMetatable", "get_raw_metatable", "getRawMetatable", "setRawMT", "get_raw_mt", "getrawmt", "GetRawMetatable"}},
+    {Uranium::debug_setmetatable, {"setrawmetatable", "debug_setmetatable", "setRawMetatable", "setRawMT", "set_raw_mt", "setrawmt", "SetRawMetatable"}},
+    {Uranium::debug_getconstants, {"getconstants", "get_constants", "getConstants", "GetConstants"}},
+    {Uranium::debug_getupvalues, {"getupvalues", "get_upvalues", "getUpValues", "GetUpValues"}},
+    {Uranium::setreadonly, {"setreadonly", "set_readonly", "set_read_only", "setReadOnly", "SetReadOnly"}},
+    {Uranium::isreadonly, {"is_read_only", "isreadonly", "IsReadOnly", "isReadOnly"}},
+    {Uranium::getnamecallmethod, {"getnamecallmethod", "get_namecall_method", "get_namecall", "getnamecall", "getncm", "get_ncm", "GetNameCallMethod", "getNameCallMethod"}},
+    {Uranium::setnamecallmethod, {"setnamecallmethod", "set_namecall_method", "setncm", "setNameCallMethod", "set_ncm"}},
+    {Uranium::makewriteable, {"make_writeable", "makewriteable", "make_write_able", "makeWriteAble", "MakeWriteAble"}},
+    {Uranium::makereadonly, {"make_readonly", "makereadonly", "make_read_only", "MakeReadOnly"}},
+    {Uranium::iswriteable, {"iswriteable", "is_write_able", "IsWriteAble", "canwrite", "can_write", "CanWrite", "is_writable"}},
+    {Uranium::getfflag, {"getfflag", "get_fflag", "getFFlag", "GetFFlag"}},
+    {Uranium::getrenv, {"getrenv", "get_renv", "get_roblox_enviorment", "getRenv", "GetRenv", "getrobloxenviorment", "GetRobloxEnviorment", "getRobloxEnviorment"}},
+    {Uranium::getgenv, {"get_genv", "getgenv", "get_global_enviorment", "getGenv", "GetGenv", "GetGlobalEnviorment", "getglobalenviorment", "getGlobalEnviorment"}},
 };
     for (const function_table_struct& entry: function_table)
     {
