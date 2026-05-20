@@ -482,12 +482,29 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
 {
     luaL_openlibs(lua_state_ptr);
     
-    push_debug_lib(lua_state_ptr, "getmetatable", Uranium::debug_getmetatable);
-    push_debug_lib(lua_state_ptr, "setmetatable", Uranium::debug_setmetatable);
-    push_debug_lib(lua_state_ptr, "getconstants", Uranium::debug_getconstants);
-    push_debug_lib(lua_state_ptr, "getupvalues", Uranium::debug_getupvalues);
+    //push_debug_lib(lua_state_ptr, "getmetatable", Uranium::debug_getmetatable);
+    //push_debug_lib(lua_state_ptr, "setmetatable", Uranium::debug_setmetatable);
+    //push_debug_lib(lua_state_ptr, "getconstants", Uranium::debug_getconstants);
+    //push_debug_lib(lua_state_ptr, "getupvalues", Uranium::debug_getupvalues);
     // push_generic_global(lua_state_ptr, "getrawmetatable", debug_getmetatable);
     //push_generic_global(lua_state_ptr, "setrawmetatable", debug_setmetatable);
+
+     std::vector<function_table_struct>debug_func_lib =
+    {
+    {Uranium::debug_getmetatable, {"getmetatable", "get_metatable"}},
+    {Uranium::debug_setmetatable, {"set_metatable", "SetMetatable", "setmetatable"}},
+    {Uranium::debug_getconstants, {"getconstants", "get_constants"}},
+    {Uranium::debug_getupvalues, {"getupvalues", "get_upvalues"}},
+};
+    for (const function_table_struct& entry: debug_func_lib)
+    {
+    for (const char* name_str: entry.names)
+    {
+      push_debug_lib(lua_state_ptr, name_str, entry.func);
+    }
+}
+
+
     std::vector<function_table_struct>function_table =
     {
     {Uranium::debug_getmetatable, {"getrawmetatable", "debug_getmetatable", "getRawMetatable", "get_raw_metatable", "getRawMetatable", "setRawMT", "get_raw_mt", "getrawmt", "GetRawMetatable"}},
