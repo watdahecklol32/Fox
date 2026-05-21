@@ -199,7 +199,7 @@ int debug_getprotos(lua_State* lua_state_ptr)
         for (int i = 0; i < proto_size; i++)
         {
             const Proto* target = proto_ptr->p[i];
-            lua_pushlightuserdata(lua_state_ptr, (void*)target); // TODO: proto proxy if i ever bother to.
+            lua_pushlightuserdata(lua_state_ptr, (void*)target);
             lua_rawseti(lua_state_ptr, -2, i + 1);
         }
     }
@@ -232,7 +232,7 @@ int debug_getproto(lua_State* lua_state_ptr)
     }
     if (!activated)
     {
-        lua_pushlightuserdata(lua_state_ptr, (void*)target); // TODO: protoproxy, if i even bother to.
+        lua_pushlightuserdata(lua_state_ptr, (void*)target);
         return 1;
     }
     gc_search_proto context{target, {}};
@@ -378,16 +378,16 @@ int debug_getstack(lua_State* lua_state_ptr)
     if (lua_isnoneornil(lua_state_ptr, 2))
     {
         lua_newtable(lua_state_ptr);
-        for (int n = 1; ; n++)
+        for (int i = 1; ; i++)
         {
             // so we dont get fucked by the optimizations
-            const LocVar* result = luaF_getlocal(proto, n, program_counter);
+            const LocVar* result = luaF_getlocal(proto, i, program_counter);
             if (!result){
                 break;
             }
             luaC_threadbarrier(lua_state_ptr);
             luaA_pushobject(lua_state_ptr, current_instruction->base + result->reg);
-            lua_rawseti(lua_state_ptr, -2, n);
+            lua_rawseti(lua_state_ptr, -2, i);
         }
         return 1;
     }
