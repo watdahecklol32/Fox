@@ -10,9 +10,12 @@
 #include "lmem.h"
 #include "lobject.h"
 #include "lstate.h"
+#include "ldebug.h"
 #include "Types.hpp"
 // so sorry, but hours were wasted on debugging some of these funcs... i was too stupid to notice some were fucking up because of some luau optimizations, i'm not really good at this, and they are still bugg
 // i did try a rewrite
+
+// TODO: debug.getproto: copy the code into a new 'cloned' proto so we dont have to push a blank userdata, while also making it safe
 static bool debug_getproto_visitor(void* raw, lua_Page* gc_page, GCObject* gc_object)
 {
     if (gc_object->gch.tt != LUA_TFUNCTION)
@@ -369,29 +372,41 @@ int debug_getstack(lua_State* lua_state_ptr)
         luaL_argerrorL(lua_state_ptr, 1, "Luau closure expected");
         return 0;
     }
-    const CallInfo* ci = lua_state_ptr->ci - stack_level;
-    const Proto* proto = clvalue(ci->func)->l.p;
-    const int num_locals = proto->sizelocvars;
+    const CallInfo* current_instruction = lua_state_ptr->ci - stack_level;
+    const Proto* proto = clvalue(current_instruction->func)->l.p;
+    const int program_counter = pcRel(current_instruction->savedpc, proto);
     if (lua_isnoneornil(lua_state_ptr, 2))
     {
         lua_newtable(lua_state_ptr);
-        for (int i = 0; i < num_locals; i++)
+        for (int n = 1; ; n++)
         {
+            // so we dont get fucked by the optimizations
+            const LocVar* result = luaF_getlocal(proto, n, program_counter);
+            if (!result){
+                break;
+            }
             luaC_threadbarrier(lua_state_ptr);
-            luaA_pushobject(lua_state_ptr, ci->base + proto->locvars[i].reg); // TODO: fucking fix please??
-            lua_rawseti(lua_state_ptr, -2, i + 1);
+            luaA_pushobject(lua_state_ptr, current_instruction->base + result->reg);
+            lua_rawseti(lua_state_ptr, -2, n);
         }
         return 1;
     }
     luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
     const int index = lua_tointeger(lua_state_ptr, 2);
-    if (index <= 0 || index > num_locals)
+    if (index <= 0)
+    {
+        luaL_argerror(lua_state_ptr, 2, "index out of bounds");
+        return 0;
+    }
+    // so we dont get fucked by the optimizations
+    const LocVar* result = luaF_getlocal(proto, index, program_counter);
+    if (!result)
     {
         luaL_argerror(lua_state_ptr, 2, "index out of bounds");
         return 0;
     }
     luaC_threadbarrier(lua_state_ptr);
-    luaA_pushobject(lua_state_ptr, ci->base + proto->locvars[index - 1].reg);
+    luaA_pushobject(lua_state_ptr, current_instruction->base + result->reg);
     return 1;
 }
 int debug_setstack(lua_State* lua_state_ptr)
@@ -419,21 +434,29 @@ int debug_setstack(lua_State* lua_state_ptr)
         luaL_argerrorL(lua_state_ptr, 1, "Luau closure expected");
         return 0;
     }
-    const CallInfo* ci = lua_state_ptr->ci - stack_level;
-    const int frame_size = static_cast<int>(ci->top - ci->base);
-    const int stack_index = lua_tointeger(lua_state_ptr, 2) - 1;
-    if (stack_index < 0 || stack_index >= frame_size)
+    const CallInfo* current_instruction = lua_state_ptr->ci - stack_level;
+    const Proto* proto = clvalue(current_instruction->func)->l.p;
+    const int program_counter = pcRel(current_instruction->savedpc, proto);
+    const int index = lua_tointeger(lua_state_ptr, 2);
+    if (index <= 0)
     {
         luaL_argerrorL(lua_state_ptr, 2, "index out of bounds");
         return 0;
     }
+    const LocVar* result = luaF_getlocal(proto, index, program_counter);
+    if (!result)
+    {
+        luaL_argerrorL(lua_state_ptr, 2, "index out of bounds");
+        return 0;
+    }
+    const lua_TValue* current_value = current_instruction->base + result->reg;
     const lua_TValue* new_value = luaA_toobject(lua_state_ptr, 3);
-    if (iscollectable(ci->base + stack_index) != iscollectable(new_value)) // TODO: wuh?
+    if (ttype(current_value) != ttype(new_value))
     {
         luaL_argerror(lua_state_ptr, 3, "type mismatch");
         return 0;
     }
-    setobj2s(lua_state_ptr, ci->base + stack_index, new_value);
+    setobj2s(lua_state_ptr, current_instruction->base + result->reg, new_value);
     return 0;
 }
 }
