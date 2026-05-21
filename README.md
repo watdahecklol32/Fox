@@ -1,14 +1,29 @@
 Should be updated if I dont give up, made in lute!
 
 
-Most things from here, you can get it working with it: https://github.com/luau-lang/lute
+Made with [Lute](https://github.com/luau-lang/lute)
+Making a Lute enviorment as close to an executor's environment as close as possible
+
 
 Enviorment is in the `Uranium` folder, testing suite is in `after_run`
 
-Goals:
-  * Debug Library
-  * Cloure Library
-  * Table Library
-  * find a way to safely implement debug.setcode without an arbitary code execution risk
-  * maybe oth lib?
-  * setfflag for luau fflags?
+
+## Libraries
+
+
+## Closure Library
+`iscclosure` `isnewcclousre` `newcclousre`, `hookfunction`, `hookmetamethod`, `islclosure`, `clonefunction`, `setinfo`, `getfunctionbytecode`, `dissassemble`
+
+## Debug Library
+`debug.getproto`, `debug.setstack`, `debug.getstack`, `debug.getcode` `debug.setcode`, `getinfo`, `setmetatable`, `getmetatable`, `getconstants`, `getupvalues`, `setconstant`, `setupvalue`, `debug.getregistery`
+
+
+## Table Library
+`getgenv`, `getreg`, `getgc`, `setreadonly`, `isreadonly`, `makewriteable`, `makereadonly`, `getfflag`, `setnamecallmethod`, `getnamecallmethod`
+
+## Console Library
+`rconsolecreate`, `rconsoleclear`, `rconsoleprint`, `rconsoletitle`, `rconsoleerr`
+
+
+## Progress:
+* Most of the debug library is complete as of 5\21\26
