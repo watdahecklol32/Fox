@@ -11,6 +11,21 @@
 #include "lobject.h"
 #include "lstate.h"
 #include "Types.hpp"
+static bool debug_getproto_visitor(void* raw, lua_Page* gc_page, GCObject* gc_object)
+{
+    if (gc_object->gch.tt != LUA_TFUNCTION)
+    {
+        return false;
+    }
+    gc_search_proto* curr_context = static_cast<gc_search_proto*>(raw);
+    Closure* closure = gco2cl(gc_object);
+    if (!closure->isC && closure->l.p == curr_context->target)
+    {
+        curr_context->results.push_back(closure);
+        return false;
+    }
+    return false;
+}
 namespace Uranium
 {
 	int debug_getmetatable(lua_State* lua_state_ptr)
@@ -226,26 +241,13 @@ namespace Uranium
             lua_pushlightuserdata(lua_state_ptr, (void*)target); // TODO: protoproxy, if i even bother to.
             return 1;
         }
-        gc_search_proto ctx{target, {}};
-        luaM_visitgco(lua_state_ptr, &ctx, [](void* raw, lua_Page* page, GCObject* gco) -> bool {
-            if (gco->gch.tt != LUA_TFUNCTION)
-            {
-                return false;
-            }
-            gc_search_proto* c = static_cast<gc_search_proto*>(raw);
-            Closure* closure = gco2cl(gco);
-            if (!closure->isC && closure->l.p == c->target)
-            {
-                //std :: cout << "WAAAAAAAAAAAAAAAAAAAAA" << std :: endl;
-                c->results.push_back(closure);
-            }
-            return false;
-        });
+        gc_search_proto context{target, {}};
+        luaM_visitgco(lua_state_ptr, &context, debug_getproto_visitor);
         lua_newtable(lua_state_ptr);
-        for (size_t i = 0; i < ctx.results.size(); i++) // clueless!!
+        for (size_t i = 0; i < context.results.size(); i++) // clueless!!
         {
             luaC_threadbarrier(lua_state_ptr);
-            setclvalue(lua_state_ptr, lua_state_ptr->top, ctx.results[i]);
+            setclvalue(lua_state_ptr, lua_state_ptr->top, context.results[i]);
             lua_state_ptr->top += 1;
             lua_rawseti(lua_state_ptr, -2, i + 1);
         }
