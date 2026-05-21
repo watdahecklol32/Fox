@@ -365,7 +365,7 @@ namespace Uranium
             luaL_argerrorL(lua_state_ptr, 1, "illegal stack level");
             return 0;
         }
-        bool is_cfunc = lua_iscfunction(lua_state_ptr, -1);
+        const bool is_cfunc = lua_iscfunction(lua_state_ptr, -1);
         lua_pop(lua_state_ptr, 1);
         if (is_cfunc)
         {
@@ -373,7 +373,7 @@ namespace Uranium
             return 0;
         }
         const CallInfo current_instruction = lua_state_ptr->ci[-stack_level];
-        int frame_size = (current_instruction.top - current_instruction.base); // oh ok
+        const int frame_size = (current_instruction.top - current_instruction.base); // oh ok
         if (!lua_isnoneornil(lua_state_ptr, 2))
         {
             luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
