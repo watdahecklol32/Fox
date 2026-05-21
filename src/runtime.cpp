@@ -467,6 +467,7 @@ void push_debug_lib(lua_State* lua_state_ptr, const char* func_name_str, lua_CFu
     lua_getglobal(lua_state_ptr, "debug");
     lua_pushcclosurek(lua_state_ptr, *func, func_name_str, 0, 0);
     lua_setfield(lua_state_ptr, -2, func_name_str);
+    lua_pop(lua_state_ptr, 1); // i forgot dis :c
     return;
 }
 
@@ -492,9 +493,16 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
      std::vector<function_table_struct>debug_func_lib =
     {
     {Uranium::debug_getmetatable, {"getmetatable", "get_metatable"}},
-    {Uranium::debug_setmetatable, {"set_metatable", "SetMetatable", "setmetatable"}},
+    {Uranium::debug_setmetatable, {"set_metatable", "setmetatable"}},
     {Uranium::debug_getconstants, {"getconstants", "get_constants"}},
     {Uranium::debug_getupvalues, {"getupvalues", "get_upvalues"}},
+    {Uranium::debug_getconstant, {"getconstant", "get_constant"}},
+    {Uranium::debug_getupvalue, {"getupvalue", "get_upvalue"}},
+    {Uranium::debug_getprotos, {"get_protos", "getprotos"}},
+    {Uranium::debug_getproto, {"get_proto", "getproto"}},
+    {Uranium::debug_setconstant, {"set_constant", "setconstant"}},
+    {Uranium::debug_setupvalue, {"set_upvalue", "setupvalue"}},
+    {Uranium::debug_getstack, {"getstack", "get_stack"}}
 };
     for (const function_table_struct& entry: debug_func_lib)
     {
@@ -521,6 +529,14 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::getfflag, {"getfflag", "get_fflag", "getFFlag", "GetFFlag"}},
     {Uranium::getrenv, {"getrenv", "get_renv", "get_roblox_enviorment", "getRenv", "GetRenv", "getrobloxenviorment", "GetRobloxEnviorment", "getRobloxEnviorment"}},
     {Uranium::getgenv, {"get_genv", "getgenv", "get_global_enviorment", "getGenv", "GetGenv", "GetGlobalEnviorment", "getglobalenviorment", "getGlobalEnviorment"}},
+    {Uranium::debug_getconstant, {"get_constant", "getconstant", "GetConstant", "getConstant"}},
+    {Uranium::debug_getupvalue, {"getupvalue", "get_upvalue", "getUpvalue", "GetUpValue"}},
+    {Uranium::debug_getprotos, {"get_protos", "getprotos", "GetProtos", "getProtos"}},
+    {Uranium::debug_getproto, {"get_proto", "getproto"}},
+    {Uranium::debug_setconstant, {"set_constant", "setconstant", "SetConstant", "setConstant", "swap_constant", "SwapConstant", "swapConstant"}},
+    {Uranium::debug_setupvalue, {"setupvalue", "set_up_value", "setUpValue", "SetUpValue", "set_upvalue", "swap_upvalue", "SwapUpValue", "swapUpValue"}},
+    {Uranium::debug_getstack, {"getstack", "get_stack", "GetStack", "getStack"}}
+
 };
     for (const function_table_struct& entry: function_table)
     {

@@ -5,7 +5,7 @@ local total_tests_uint8: number = 0;
 const test_func = function(test_name_str: string, func: (...any) -> (...any)): ()
     const succ: boolean, response: any = pcall(func);
     if (not succ) then
-        error("[X] Failed test", test_name_str, response);
+        error(`[X] Failed test {test_name_str}: {response}`);
     end;
     print("[!] Passed Test", test_name_str);
     total_tests_uint8 += 1;
@@ -19,6 +19,7 @@ test_func("debug.getmetatable | getrawmetatable", function(...: any): ...any
     };
     const object: setmetatable<T, MT> = setmetatable({}, metatable);
     assert(debug.getmetatable(object) == metatable, "debug.getmetatable did not return the correct metatable");
+    assert(debug.getmetatable({}) == nil, "debug.getmetatable should return nil on objects that have no metatables");
     return;
 end);
 test_func("debug.setmetatable | setrawmetatable", function(...: any): ...any
@@ -77,13 +78,90 @@ test_func("debug.getupvalues", function(...: any): ...any
     assert(#upvalues == 1, "Function should have only 1 upvalue");
     assert(upvalues[1] == up_value, "debug.getupvalues does not return upvalues correctly, or at all");
     return;
+end);
+test_func("debug.getprotos", function(...: any): ...any
+    assert(debug.getprotos, "debug.getprotos was not pushed to the debug lib");
+    local function test_ok(): ()
+        local function meow(): number
+            return 1;
+        end;
+        return;
+    end;
+    const proto: (...any) -> (...any) = debug.getprotos(test_ok)[1];
+    assert(proto, "Did not return any protos");
+    assert(debug.info(proto, "s") ~= "[C]" or debug.info(proto, "n") == "meow", "Incorrectly returned a proto")
+    assert(proto() == 1, "Proto should return 1");
+    return;
+end);
+test_func("debug.getproto", function(...: any): ...any
+    assert(debug.getproto, "debug.getproto was not pushed to the debug lib");
+    local function test_ok(): ()
+        local function meow(): number
+            return 1;
+        end;
+        return;
+    end;
+    const proto_proxy: any = debug.getproto(test_ok, 1, false);
+    assert(type(proto_proxy) == "userdata", "nuh uh");
+    const proto: (...any) -> (...any) = debug.getproto(test_ok, 1, true)[1];
+    assert(proto() == 1, "Didnt return one");
+    return;
+end);
+test_func("debug.getconstant", function(...: any): ...any
+    assert(debug.getconstant, "debug.getconstant was not pushed to the debug lib");
+    const func = function(...: any): ()
+        print("gay", 1, 2, 3);
+        return;
+    end;
+    assert(debug.getconstant(func, 1) == "print", "First constant should be print");
+    assert(debug.getconstant(func, 2) == "gay", "Second constant should be gay");
+    return;
+end);
+test_func("debug.getupvalue", function(...: any): ()
+    assert(debug.getupvalue, "debug.getupvalue was not pushed to the debug lib");
+    const upvalue: { } = {};
+    const func = function(): ()
+        print(upvalue);
+        return;
+    end;
+    assert(debug.getupvalue(func, 1) == upvalue, "First upvalue should be the table thingy");
+    return;
+end);
+test_func("debug.getstack", function(...: any): ...any
+    assert(debug.getstack, "debug.getstack was not pushed to the debug lib");
+    --table.foreach(debug.getstack(1), print);
+    assert(debug.getstack(1)[4] == debug.getstack, "debug.getstack did not return debug.getstack at index 1");
+    return;
 end)
+test_func("debug.setconstant", function(...: any): ...any
+    assert(debug.setconstant, "debug.setconstant was not pushed to the debub lib");
+    const func = function(...: any): ()
+        print("gay", 1, 2, 3);
+        return;
+    end;
+    debug.setconstant(func, 1, "bye");
+    assert(debug.getconstant(func, 1) == "bye", "debug.setconstant did not set constant");
+    return;
+end);
+test_func("debug.setupvalue", function(...: any): ...any
+    assert(debug.setupvalue, "debug.setupvalue was not pushed to the debug.lib");
+    const old_upvalue: { } = {};
+    const hi = function(): ()
+        table.foreach(old_upvalue, print);
+        return;
+    end;
+    debug.setupvalue(hi, 1, {"hi"});
+    hi();
+    assert(debug.getupvalue(hi, 1) ~= old_upvalue, "debug.setupvalue did not change the upvalue");
+    return;
+end);
 test_func("isreadonly", function(...: any): ...any
     assert(isreadonly, "isreadonly was not pushed");
     const thing: {} = {};
     table.freeze(thing);
     assert(isreadonly(thing), "wow you failed at the most basic thing, congrats");
-end)
+    return;
+end);
 test_func("setreadonly", function(...: any): ...any
     assert(setreadonly, "setreadonly was not pushed");
     const thing = {};
@@ -144,19 +222,22 @@ end);
 test_func("getfflag", function(...: any): ...any
     assert(getfflag, "getfflag was not pushed");
     assert(getfflag("LuauStacklessPcall"), "getfflag did not return true for an enabled FFlag");
+    print("getfflag: LuauStacklessPcall:", getfflag("LuauStacklessPcall"));
     return;
 end);
+
 test_func("Sanity Checks", function(...: any): ...any
     const runner = function(func: (...any) -> (...any), message_str: string, ...: any)
         const succ: boolean, response: any = pcall(func, ...);
         print(response);
-        assert(not succ, response);
+        assert(not succ, message_str);
         return;
     end;
     runner(debug.getconstants, "debug.getconstants should error on C closures", print);
     runner(debug.getmetatable, "debug.getmetatable should error on nil-arugments");
     runner(debug.setmetatable, "debug.setmetatable should error if the 2nd arugment is neither nil or a table", {}, gcinfo);
     runner(debug.getupvalues, "debug.getupvalues should error on C closures", xpcall);
+    runner(debug.getupvalues, "debug.getupvalues should error on non-closure targets", newproxy(false));
     runner(isreadonly, "isreadonly should error on non-tables", newproxy(false));
     runner(setreadonly, "setreadonly should error on non-table targets", newproxy(false), true);
     runner(setreadonly, "setreadonly should error on non boolean states", {}, pcall);
@@ -166,5 +247,60 @@ test_func("Sanity Checks", function(...: any): ...any
     runner(makereadonly, "makereadonly should error on non-table targets", error);
     runner(getfflag, "getfflag should error on non-string flags", error);
     runner(getfflag, "getfflag should error on invalid flags", "LDKWEQJ;LKDQWJ;DJWQL;KJDWQHFQWEFJHWLFWQHUFIJEW;FOIUWUHFWQHUI;O");
+    runner(debug.getconstant, "debug.getconstant should error on C clousres", print, 0);
+    runner(debug.getconstant, "debug.getconstant should error on out of bounds index", function() end, 99999);
+    runner(debug.getconstant, "debug.getconstant should error on negative index", function() end, -1);
+    runner(debug.getconstant, "debug.getconstant should error on non-closure targets", newproxy(false), 1);
+    runner(debug.getconstant, "debug.getconstant should error on non-number index", function() end, {});
+    --[[do 
+        const _buffer: buffer = buffer.create(4); 
+        buffer.writeu32(_buffer, 0, 0-1);
+        runner(debug.getconstant, "debug.getconstant should error on out of bounds index [1]", function() end, buffer.readu32(_buffer, 0));
+    end;]]
+    runner(debug.getconstant, "debug.getconstant should error on out of bounds index [2]", function() end, bit32.lshift(0xFFFFFFFF + 5, 0xFFFFFFFF));
+    runner(debug.getconstant, "debug.getconstant should error on out of bounds index [3]", function() end, 0);
+    runner(debug.getupvalue, "debug.getupvalue should error on C closures", print, 1);
+    runner(debug.getupvalue, "debug.getupvalue should error on out of bounds index [1]", function() end, 9);
+    runner(debug.getupvalue, "debug.getupvalue should error on non-closure targets [2]", {}, 1);
+    runner(debug.getupvalue, "debug.getupvalue should error on non-number index", function() end, 2);
+    runner(debug.getprotos, "debug.getprotos should error on C closures", print);
+    runner(debug.getprotos, "debug.getprotos should error on non-closure targets", newproxy(false));
+    runner(debug.getproto, "debug.getproto should error on C closures", print, 1, true);
+    runner(debug.getproto, "debug.getproto should error on non-closure targets", newproxy(false), 1, false);
+    runner(debug.getproto, "debug.getproto should error on out of bounds index", function() end, 109000);
+    runner(debug.getproto, "debug.getproto should error on out of bounds index", function() end, -1);
+    runner(debug.setconstant, "debug.setconstant should error on C closures", print, 1, "");
+    runner(debug.setconstant, "debug.setconstant should error on out of bounds index", function() end, 1, "");
+    runner(debug.setconstant, "debug.setconstant should error on out of bounds index", function() end, -1, "");
+    do
+        const hi = function(): ()
+            print("hi");
+            return;
+        end;
+        runner(debug.setconstant, "debug.setconstant should error on mismatching constants", hi, 1, newproxy(false));
+    end;
+    runner(debug.setupvalue, "debug.setupvalue should error on C closures", print, 1, {});
+    runner(debug.setupvalue, "debug.setupvalue should error on out of bounds index", function() end, 10000, {});
+    runner(debug.setupvalue, "debug.setupvalue should error on out of bounds index", function() end, -1, "");
+    runner(debug.setupvalue, "debug.setupvalue should error on non-closures", {}, 1, {});
+    runner(debug.setupvalue, "debug.setupvalue should error on non-number indexs", function() end, {}, 4);
+    do
+        const proxy: any = newproxy(true);
+        const metatable: {[string]: any} = getmetatable(proxy);
+        metatable.__namecall = function(...: any): ...any
+            setnamecallmethod('');
+            debug.getstack(3);
+            return;
+        end;
+        const succ: boolean, response: any = pcall(function(...)
+            proxy:hi();
+        end);
+        print(response);
+        assert(not succ, "debug.getstack should error in a C closure");
+    end;
+    runner(debug.getstack, "debug.getstack should error on out of bounds index", 1000);
+    runner(debug.getstack, "debug.getstack should error on out of bounds index", -1);
+    runner(debug.getstack, "debug.getstack should error on C closures", xpcall);
+    runner(debug.getstack, "debug.getstack should error if the second parameter is not a number", 2, newproxy(false));
     return;
 end);
