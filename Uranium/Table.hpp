@@ -14,4 +14,5 @@ namespace Uranium
     int getrenv(lua_State* lua_state_ptr);
     int getgenv(lua_State* lua_state_ptr);
     int getgc(lua_State* lua_state_ptr);
+    int getreg(lua_State* lua_state_ptr);
 }

@@ -502,7 +502,10 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::debug_getproto, {"get_proto", "getproto"}},
     {Uranium::debug_setconstant, {"set_constant", "setconstant"}},
     {Uranium::debug_setupvalue, {"set_upvalue", "setupvalue"}},
-    {Uranium::debug_getstack, {"getstack", "get_stack"}}
+    {Uranium::debug_getstack, {"getstack", "get_stack"}},
+    {Uranium::debug_setstack, {"setstack", "set_stack"}},
+    {Uranium::debug_setname, {"setname", "set_name"}},
+    {Uranium::getreg, {"getregistry", "get_registry"}}
 };
     for (const function_table_struct& entry: debug_func_lib)
     {
@@ -536,8 +539,10 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::debug_setconstant, {"set_constant", "setconstant", "SetConstant", "setConstant", "swap_constant", "SwapConstant", "swapConstant"}},
     {Uranium::debug_setupvalue, {"setupvalue", "set_up_value", "setUpValue", "SetUpValue", "set_upvalue", "swap_upvalue", "SwapUpValue", "swapUpValue"}},
     {Uranium::debug_getstack, {"getstack", "get_stack", "GetStack", "getStack"}},
-    {Uranium::getgc, {"get_gc", "getgc", "get_garbage_collector", "getgarbagecollector", "getGC", "GetGC", "GetGarbageCollector"}}
-
+    {Uranium::debug_setstack, {"setstack", "set_stack", "SetStack", "setStack"}},
+    {Uranium::getgc, {"get_gc", "getgc", "get_garbage_collector", "getgarbagecollector", "getGC", "GetGC", "GetGarbageCollector"}},
+    {Uranium::debug_setname, {"setname", "set_name", "setName", "SetName"}},
+    {Uranium::getreg, {"getregistry", "get_registry", "GetRegistry", "getreg", "GetReg", "get_reg", "getReg"}}
 };
     for (const function_table_struct& entry: function_table)
     {

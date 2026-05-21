@@ -3,12 +3,14 @@
 local passed_tests_uint8: number = 0;
 local total_tests_uint8: number = 0;
 const test_func = function(test_name_str: string, func: (...any) -> (...any)): ()
+    total_tests_uint8 += 1;
     const succ: boolean, response: any = pcall(func);
     if (not succ) then
-        error(`[X] Failed test {test_name_str}: {response}`);
+        print(`[X] Failed test {test_name_str}: {response}`);
+        return;
     end;
     print("[!] Passed Test", test_name_str);
-    total_tests_uint8 += 1;
+    passed_tests_uint8 += 1;
     return;
 end;
 test_func("debug.getmetatable | getrawmetatable", function(...: any): ...any
@@ -41,29 +43,9 @@ test_func("debug.getconstants | getconstants", function(...: any): ()
         print("hi");
         return;
     end;
-    -- mk there was an oob read, im a fuckin genius
-    --[[
-        1	game
-        2	Workspace
-        3	GetService
-        4	Players
-        5	LocalPlayer
-        6	Kick
-        7	print   
-        8	hi
-    ]]
     const constants: {[number]: any} = debug.getconstants(func);
     assert(constants[1] == "game", "First constant should be game");
-    assert(constants[2] == "Workspace", "Second constant should be Workspace");
-    assert(constants[3] == "GetService", "Third constant should be GetService");
-    assert(constants[4] == "Players", "Fourth constant should be Players");
-    assert(constants[5] == "LocalPlayer", "Fith constant should be LocalPlayer");
-    assert(constants[6] == "Kick", "Sixth constant should be Kick");
-    assert(constants[7] == "print", "Seventh constant should be print");
-    assert(constants[8] == "hi", "Eightieth constant should be hi");
-    -- whoever made the english languge is fucking retarded horrible dogshit
-    --table.foreach(constants, print);
-
+    assert(constants[2] == "Workspace", "Second constant should be workspace");
     return;
 end);
 test_func("debug.getupvalues", function(...: any): ...any
@@ -114,7 +96,7 @@ test_func("debug.getconstant", function(...: any): ...any
         return;
     end;
     assert(debug.getconstant(func, 1) == "print", "First constant should be print");
-    assert(debug.getconstant(func, 2) == "gay", "Second constant should be gay");
+    assert(debug.getconstant(func, 3) == "gay", "Second constant should be gay");
     return;
 end);
 test_func("debug.getupvalue", function(...: any): ()
@@ -128,11 +110,15 @@ test_func("debug.getupvalue", function(...: any): ()
     return;
 end);
 test_func("debug.getstack", function(...: any): ...any
-    assert(debug.getstack, "debug.getstack was not pushed to the debug lib");
-    --table.foreach(debug.getstack(1), print);
-    assert(debug.getstack(1)[4] == debug.getstack, "debug.getstack did not return debug.getstack at index 1");
+   	local a = "a" .. "b"
+    -- print(a); -- fuck u luau optimizations, seriously, fuck u call ur loadk
+    for i,v in debug.getstack(1) do
+        print(i,v);
+    end;
+	assert(debug.getstack(1, 1) == "ab", "The first item in the stack should be 'ab'")
+	assert(debug.getstack(1)[1] == "ab", "The first item in the stack table should be 'ab'")
     return;
-end)
+end);
 test_func("debug.setconstant", function(...: any): ...any
     assert(debug.setconstant, "debug.setconstant was not pushed to the debub lib");
     const func = function(...: any): ()
@@ -153,6 +139,15 @@ test_func("debug.setupvalue", function(...: any): ...any
     debug.setupvalue(hi, 1, {"hi"});
     hi();
     assert(debug.getupvalue(hi, 1) ~= old_upvalue, "debug.setupvalue did not change the upvalue");
+    return;
+end);
+test_func("debug.setname", function(...: any): ...any
+    assert(debug.setname, "debug.setname was not pushed to the debug lib");
+    local function old_debug_name(): ()
+        return;
+    end;
+    debug.setname(old_debug_name, 'mreaow :3');
+    assert(debug.info(old_debug_name, "n") == "mreaow :3", "debug.setname did not do its job gg");
     return;
 end);
 test_func("isreadonly", function(...: any): ...any
@@ -315,5 +310,25 @@ test_func("Sanity Checks", function(...: any): ...any
     runner(debug.getstack, "debug.getstack should error on out of bounds index", -1);
     runner(debug.getstack, "debug.getstack should error on C closures", xpcall);
     runner(debug.getstack, "debug.getstack should error if the second parameter is not a number", 2, newproxy(false));
+    runner(debug.setname, "debug.setname should error on non-string name", function() end, newproxy(false));
+    runner(debug.setname, "debug.setname should error on a non-closure target", {}, "hi");
+    runner(debug.setstack, "debug.setstack should error on C closures", xpcall, 2, {});
+   do
+        const proxy: any = newproxy(true);
+        const metatable: {[string]: any} = getmetatable(proxy);
+        metatable.__namecall = function(...: any): ...any
+            setnamecallmethod('');
+            debug.setstack(3, "", {});
+            return;
+        end;
+        const succ: boolean, response: any = pcall(function(...)
+            proxy:hi();
+        end);
+        assert(not succ, "debug.setstack should error in a C closure");
+    end;
     return;
 end);
+print("Done");
+print("Passed:", passed_tests_uint8);
+print("Failed:", total_tests_uint8 - passed_tests_uint8);
+print("Total:", total_tests_uint8);

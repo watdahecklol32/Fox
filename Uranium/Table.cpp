@@ -131,4 +131,10 @@ namespace Uranium
 		luaM_visitgco(lua_state_ptr, &context, getgc_visitor);
 		return 1;
 	}
+	int getreg(lua_State* lua_state_ptr)
+	{
+		lua_checkstack(lua_state_ptr, 1);
+		lua_pushvalue(lua_state_ptr, LUA_REGISTRYINDEX);
+		return 1;
+	}
 }
