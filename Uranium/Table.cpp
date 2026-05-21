@@ -8,7 +8,7 @@
 #include "Types.hpp"
 #include "lmem.h"
 #include "lobject.h"
-bool getgc_visitor(void* context, lua_Page* gc_page, GCObject* gc_object)
+static bool getgc_visitor(void* context, lua_Page* gc_page, GCObject* gc_object)
 {
 	// somewhat ugly
 	getgc_context* curr_context = static_cast<getgc_context*>(context);
