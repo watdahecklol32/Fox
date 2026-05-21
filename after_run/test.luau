@@ -225,11 +225,25 @@ test_func("getfflag", function(...: any): ...any
     print("getfflag: LuauStacklessPcall:", getfflag("LuauStacklessPcall"));
     return;
 end);
-
+test_func("getgc", function(...: any): ()
+    const _table: {hi: boolean} = {["hi"] = true};
+    const _buffer: buffer = buffer.create(0);
+    local function UwU(): ()
+        return;
+    end;
+    const getgc_results: {[number]: (buffer| {[string]: any} | (...any) -> (...any))} = {};
+    for _: unknown, v: {[number]: (buffer | {[number]: any} | (...any) -> (...any) | any)} in getgc(true) do
+        if (v == _table or v == UwU or v == _buffer) then
+            table.insert(getgc_results, v);
+        end;
+    end;
+    assert(#getgc_results == 3, "getgc did not find all the target items");
+    return;
+end);
 test_func("Sanity Checks", function(...: any): ...any
-    const runner = function(func: (...any) -> (...any), message_str: string, ...: any)
+    const runner = function(func: (...any) -> (...any), message_str: string, ...: any): ()
         const succ: boolean, response: any = pcall(func, ...);
-        print(response);
+        --print(response);
         assert(not succ, message_str);
         return;
     end;
@@ -295,7 +309,6 @@ test_func("Sanity Checks", function(...: any): ...any
         const succ: boolean, response: any = pcall(function(...)
             proxy:hi();
         end);
-        print(response);
         assert(not succ, "debug.getstack should error in a C closure");
     end;
     runner(debug.getstack, "debug.getstack should error on out of bounds index", 1000);

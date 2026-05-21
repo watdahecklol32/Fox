@@ -5,7 +5,32 @@
 #include <cstring>
 #include <iostream>
 #include "lapi.h"
+#include "Types.hpp"
+#include "lmem.h"
 #include "lobject.h"
+bool getgc_visitor(void* context, lua_Page* gc_page, GCObject* gc_object)
+{
+	// somewhat ugly
+	getgc_context* curr_context = static_cast<getgc_context*>(context);
+	lua_State* lua_state_ptr = curr_context->lua_state_ptr;
+	const uint8_t type = gc_object->gch.tt;
+	if (type != LUA_TTABLE && type != LUA_TFUNCTION && type != LUA_TUSERDATA && type != LUA_TTHREAD && type != LUA_TBUFFER && type != LUA_TSTRING)
+	{
+		return false;
+	}
+	if (isdead(lua_state_ptr->global, gc_object) || (type == LUA_TTABLE && !curr_context->include_tables))
+	{
+		return false;
+	}
+	lua_checkstack(lua_state_ptr, 1);
+	TValue* top = lua_state_ptr->top;
+	top->value.gc = gc_object;
+	top->tt = type;
+	lua_state_ptr->top += 1;
+	curr_context->total_items_found += 1;
+	lua_rawseti(lua_state_ptr, -2, curr_context->total_items_found);
+	return false;
+}
 namespace Uranium
 {
 	int isreadonly(lua_State* lua_state_ptr)
@@ -97,5 +122,13 @@ namespace Uranium
 		lua_pushvalue(lua_state_ptr, LUA_GLOBALSINDEX); // idrk what u expect lol
 		return 1;
 	}
-
+	int getgc(lua_State* lua_state_ptr)
+	{
+		lua_checkstack(lua_state_ptr, 1);
+		lua_newtable(lua_state_ptr);
+		const bool include_tables = luaL_optboolean(lua_state_ptr, 1, false);
+		getgc_context context{0, lua_state_ptr, include_tables};
+		luaM_visitgco(lua_state_ptr, &context, getgc_visitor);
+		return 1;
+	}
 }

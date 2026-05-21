@@ -11,7 +11,14 @@ struct function_table_struct
     lua_CFunction func;
     std::vector<const char*> names;
 };
-struct gc_search_proto {
+struct gc_search_proto 
+{
     Proto* target;
     std::vector<Closure*> results;
+};
+struct getgc_context 
+{
+    int total_items_found;
+    lua_State* lua_state_ptr;
+    bool include_tables;
 };

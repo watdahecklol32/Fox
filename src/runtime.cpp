@@ -535,7 +535,8 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::debug_getproto, {"get_proto", "getproto"}},
     {Uranium::debug_setconstant, {"set_constant", "setconstant", "SetConstant", "setConstant", "swap_constant", "SwapConstant", "swapConstant"}},
     {Uranium::debug_setupvalue, {"setupvalue", "set_up_value", "setUpValue", "SetUpValue", "set_upvalue", "swap_upvalue", "SwapUpValue", "swapUpValue"}},
-    {Uranium::debug_getstack, {"getstack", "get_stack", "GetStack", "getStack"}}
+    {Uranium::debug_getstack, {"getstack", "get_stack", "GetStack", "getStack"}},
+    {Uranium::getgc, {"get_gc", "getgc", "get_garbage_collector", "getgarbagecollector", "getGC", "GetGC", "GetGarbageCollector"}}
 
 };
     for (const function_table_struct& entry: function_table)
