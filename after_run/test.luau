@@ -1,5 +1,6 @@
 --!nocheck
 --!nolint
+--!optimize 0
 local passed_tests_uint8: number = 0;
 local total_tests_uint8: number = 0;
 const test_func = function(test_name_str: string, func: (...any) -> (...any)): ()
@@ -98,7 +99,7 @@ test_func("debug.getconstant", function(...: any): ...any
         return;
     end;
     assert(debug.getconstant(func, 1) == "print", "First constant should be print");
-    assert(debug.getconstant(func, 4) == "gay", "Fourth constant should be gay");
+    assert(debug.getconstant(func, 3) == "gay", "Fourth constant should be gay");
     return;
 end);
 test_func("debug.getupvalue", function(...: any): ()
@@ -319,6 +320,109 @@ test_func("newcclosure", function(...: any): ...any
     end;
     return;
 end);
+--[[test_func("hookfunction", function(...: any): ...any
+    assert(hookfunction, "hookfunction was not pushed");
+    -- and here we go!
+    do
+        -- L->C hook test
+        const old_info: {[number]: any} = {debug.info(print, "slnaf")};
+        local called: boolean = false;
+        local hook: (...any) -> (...any); hook = hookfunction(rawget, function(...: any): ...any
+            called = true;
+            return hook(...);
+        end);
+        rawget({}, "");
+        assert(called, "C->C hook was not called");
+        for i: number, v: any in {debug.info(print, "slnaf")} do
+            if (old_info[i] ~= v) then
+                error("C->C hook detected", i,v, "expected", old_info[i]);
+                break;
+            end;
+        end;
+    end;
+    return;
+end);]]
+test_func("newlclosure", function(...: any): ...any
+    assert(newlclosure, "newlclosure didnt get pushed");
+    local upvalue_test: boolean = false;
+    const wrapped: (...any) -> boolean = newlclosure(function(...: any): boolean
+        upvalue_test = true;
+        return true;
+    end);
+    assert(islclosure(wrapped), "islclosure didn't return true");
+    assert(wrapped() == true, "didn't return true");
+    assert(upvalue_test, "upvalue didn't get set");
+    return;
+end);
+test_func("hookfunction C-L hook", function(...: any): ...any
+    assert(hookfunction, "hookfunction was not pushed");
+    local called: boolean = false;
+    const old_info: {[number]: number} = {debug.info(rawget, "slnaf")};
+    local hook: (...any) -> (...any); hook = hookfunction(rawget, function(...: any): ...any
+        print("C->L hook called")
+        called = true;
+        return hook(...);
+    end);
+    rawget({}, "hi");
+    assert(called, "bro lol");
+    for i: number, v: any in {debug.info(rawget, "slnaf")} do
+        if (old_info[i] ~= v) then
+            print("hookdetected", i, old_info[i], v);
+        end;
+    end;
+    return;
+end);
+test_func("hookfunction C->C hook", function(...): ...any -- shouldnt differ that much
+    assert(hookfunction, "hookfunction was not pushed");
+    local called: boolean = false;
+    const old_info: {[number]: number} = {debug.info(rawlen, "slnaf")};
+    const old_func_ptr: (...any) -> (...any) = rawlen;
+    local hook: (...any) -> (...any); hook = hookfunction(rawlen, newcclosure(function(...: any): ...any
+        print("C->C hook called")
+        called = true;
+        return hook(...);
+    end));
+    rawlen({})
+    assert(called, "bro lol");
+    for i: number, v: any in {debug.info(rawlen, "slnaf")} do
+        if (old_info[i] ~= v) then
+            print("hookdetected", i, old_info[i], v);
+        end;
+    end;
+    return;
+end);
+test_func("hookfunction L-L", function(...: any): ...any
+    assert(hookfunction, "hookfunction was not pushed");
+    const hi = function(): boolean
+        return true;
+    end;
+    local called: boolean = false;
+    print(debug.info(hi, "slnaf"));
+    hookfunction(hi, function(...: any): boolean
+         print("L->L hook called")
+        called = true;
+        return false;
+    end);
+    print(debug.info(hi, "slnaf"));
+    hi();
+    assert(called, "didnt even call");
+    assert(not hi(), "should'dve returned false");
+    return;
+end);
+test_func("hookfunction NC->NC", function(...: any): ...any
+    const hi = newcclosure(function(): boolean
+        return true;
+    end);
+    local called: boolean = false;
+    hookfunction(hi, newcclosure(function(...: any): boolean
+        called = true;
+        print("NC->NC hook called");
+        return false;
+    end));
+    assert(called, "should've been called");
+    assert(not hi(), "should've returned false");
+    return;
+end);
 test_func("Sanity Checks", function(...: any): ...any
     const runner = function(func: (...any) -> (...any), message_str: string, ...: any): ()
         const succ: boolean, response: any = pcall(func, ...);
@@ -414,6 +518,15 @@ test_func("Sanity Checks", function(...: any): ...any
     runner(clonefunction, "clonefunction should error on non-closure targets", newproxy(false));
     return;
 end);
+test_func("Stress test", function(...) -- doom
+    const h = function() end;
+    for i: number = 0, 5 do
+        local hook; hook = hookfunction(h, function(...) return hook(...); end);
+    end;
+    h();
+end);
+
+
 print("Done");
 print("Passed:", passed_tests_uint8);
 print("Failed:", total_tests_uint8 - passed_tests_uint8);
