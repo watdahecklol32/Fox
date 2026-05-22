@@ -1,22 +1,18 @@
 #include "Closure.hpp"
-
 #include "lua.h"
 #include "luacode.h"
 #include "lualib.h"
-
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <map>
 #include <regex>
 #include <string>
-
 #include "lapi.h"
 #include "lfunc.h"
 #include "lgc.h"
 #include "lobject.h"
 #include "lstate.h"
-const constexpr int TYPE_L = 0, TYPE_C = 1, TYPE_NC = 2;
 std::map<Closure*, Closure*> new_cclosure_map;
 static int newcclosure_cont(lua_State* lua_state_ptr, int status)
 {
