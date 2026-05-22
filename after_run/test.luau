@@ -265,10 +265,10 @@ test_func("clonefunction", function(...: any): ...any
     const h = function(): boolean
         return true;
     end;
-    const cloned_lclosure = clonefunction(h);
+    const cloned_lclosure: () -> boolean = clonefunction(h);
     assert(cloned_lclosure ~= h, "shouldn't be the same");
     assert(cloned_lclosure(), "should return true");
-    const cloned_cclosure = clonefunction(bit32.bxor);
+    const cloned_cclosure: (...number) -> number = clonefunction(bit32.bxor);
     assert(debug.info(cloned_cclosure, "n") == "bxor", "cloned C closures should retain their debug name");
     assert(cloned_cclosure ~= bit32.bxor, "C closure clone shouldnt be the same");
     assert(cloned_cclosure(1, 2) == 3, "should return for XOR of 1 and 2");
@@ -366,6 +366,7 @@ test_func("Sanity Checks", function(...: any): ...any
         assert(not succ, "debug.setstack should error in a C closure");
     end;
     runner(getgc, "getgc should error on non-boolean parameters", {});
+    runner(clonefunction, "clonefunction should error on non-closure targets", newproxy(false));
     return;
 end);
 print("Done");
