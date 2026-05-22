@@ -549,7 +549,8 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::identifyexecutor, {"identifyexecutor", "identify_executor", "identifyExecutor", "idexecutor", "id_executor", "getexecutorname", "get_executor_name", "getExecutorName"}},
     {Uranium::iscclosure, {"iscfunction", "is_c_function", "isCFunction", "IsCFunction", "iscclosure", "is_c_closure", "isCClosure"}},
     {Uranium::islclosure, {"islclosure", "isluafunction", "is_lua_function", "islfunction", "is_l_function", "isLuaFunction", "IsLuaFunction", "IsLFunction", "IsLClosure", "is_l_closure"}},
-    {Uranium::clonefunction, {"clonefunction", "clone_function", "CloneFunction", "cloneFunction"}}
+    {Uranium::clonefunction, {"clonefunction", "clone_function", "CloneFunction", "cloneFunction"}},
+    {Uranium::newcclosure, {"newcclosure", "newCClosure", "newcfunction", "NewCFunction"}}
 };
     for (const function_table_struct& entry: function_table)
     {

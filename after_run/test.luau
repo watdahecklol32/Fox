@@ -274,6 +274,51 @@ test_func("clonefunction", function(...: any): ...any
     assert(cloned_cclosure(1, 2) == 3, "should return for XOR of 1 and 2");
     return;
 end);
+test_func("newcclosure", function(...: any): ...any
+    assert(newcclosure, "newcclosure was not pushed");
+    const a = function(): ()
+        return true;
+    end;
+    const newcclosured: (...any) -> boolean = newcclosure(a);
+    assert(type(newcclosure) == "function", "should've returned a function");
+    assert(debug.info(newcclosure, "s") == "[C]" and iscclosure(newcclosured), "should've returned a C closure");
+    assert(newcclosured(), "returned incorrect values from the wrapped");
+    const newcclosured: (...any) -> boolean = newcclosure(a, "hi");
+    assert(debug.info(newcclosured, "n") == "hi", "second parameter should've set the debug name");
+    do
+        const mewower_func = function(): never
+            for i,v in true do end
+            return;
+        end;
+        local passed: boolean = false;
+        local reason_str: string = "";
+        xpcall(newcclosure(mewower_func), function(error_str: string): ()
+            if (error_str ~= "attempt to iterate over a boolean value") then
+                reason_str = "error strings dont appear as a C closure error";
+                return;
+            elseif (debug.info(3, "f") == error or debug.info(3, "f") == pcall) then
+                reason_str = "pcall or error was pushed to the stack";
+                return;
+            elseif (coroutine.isyieldable()) then
+                reason_str = "xpcall error handler is yieldable"
+                return;
+            end;
+            for i: number = 0, 50 do
+                if (not debug.info(i, "f")) then
+                    break;
+                end;
+                if (debug.info(i, "f") == mewower_func) then
+                    reason_str = `Leaked non-wrapped at level {i}`
+                    return error();
+                end;
+            end;
+            passed = true;
+            return;
+        end);
+        assert(passed, reason_str);
+    end;
+    return;
+end);
 test_func("Sanity Checks", function(...: any): ...any
     const runner = function(func: (...any) -> (...any), message_str: string, ...: any): ()
         const succ: boolean, response: any = pcall(func, ...);
