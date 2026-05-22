@@ -35,7 +35,6 @@ namespace Uranium
 {
 int debug_getmetatable(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checkany(lua_state_ptr, 1);
     // lua_getmetatable(lua_state_ptr, 1);
     if (!lua_getmetatable(lua_state_ptr, 1))
@@ -47,7 +46,6 @@ int debug_getmetatable(lua_State* lua_state_ptr)
 }
 int debug_setmetatable(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checkany(lua_state_ptr, 1);
     luaL_checkany(lua_state_ptr, 2);
     const int type_int = lua_type(lua_state_ptr, 2);
@@ -61,7 +59,6 @@ int debug_setmetatable(lua_State* lua_state_ptr)
 }
 int debug_getconstants(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     if (lua_iscfunction(lua_state_ptr, 1))
     {
@@ -92,7 +89,6 @@ int debug_getconstants(lua_State* lua_state_ptr)
 }
 int debug_getupvalues(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     if (lua_iscfunction(lua_state_ptr, 1))
     {
@@ -118,7 +114,6 @@ int debug_getupvalues(lua_State* lua_state_ptr)
 }
 int debug_getconstant(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
     if (lua_iscfunction(lua_state_ptr, 1))
@@ -147,7 +142,6 @@ int debug_getconstant(lua_State* lua_state_ptr)
 }
 int debug_getupvalue(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
     int index = lua_tointeger(lua_state_ptr, 2);
@@ -165,7 +159,6 @@ int debug_getupvalue(lua_State* lua_state_ptr)
 }
 int debug_getprotos(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     if (lua_iscfunction(lua_state_ptr, 1))
     {
@@ -207,7 +200,6 @@ int debug_getprotos(lua_State* lua_state_ptr)
 }
 int debug_getproto(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
     if (lua_iscfunction(lua_state_ptr, 1))
@@ -249,7 +241,6 @@ int debug_getproto(lua_State* lua_state_ptr)
 }
 int debug_setconstant(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     // luaL_checkany(lua_state_ptr, 2);
     luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
@@ -304,7 +295,6 @@ int debug_setconstant(lua_State* lua_state_ptr)
 }
 int debug_setupvalue(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
     luaL_checkany(lua_state_ptr, 3);
@@ -334,7 +324,6 @@ int debug_setupvalue(lua_State* lua_state_ptr)
 }
 int debug_setname(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     luaL_checktype(lua_state_ptr, 2, LUA_TSTRING);
     Closure* function_ptr = clvalue(luaA_toobject(lua_state_ptr, 1));
@@ -351,7 +340,6 @@ int debug_setname(lua_State* lua_state_ptr)
 // the fucking horrors
 int debug_getstack(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 3);
     luaL_checktype(lua_state_ptr, 1, LUA_TNUMBER);
     const int stack_level = lua_tointeger(lua_state_ptr, 1);
     if (stack_level <= 0)
@@ -411,7 +399,6 @@ int debug_getstack(lua_State* lua_state_ptr)
 }
 int debug_setstack(lua_State* lua_state_ptr)
 {
-    lua_checkstack(lua_state_ptr, 1);
     luaL_checktype(lua_state_ptr, 1, LUA_TNUMBER);
     luaL_checktype(lua_state_ptr, 2, LUA_TNUMBER);
     luaL_checkany(lua_state_ptr, 3);

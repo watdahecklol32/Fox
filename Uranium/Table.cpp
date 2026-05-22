@@ -35,7 +35,6 @@ namespace Uranium
 {
 	int isreadonly(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
 		LuaTable* table_ptr = hvalue(luaA_toobject(lua_state_ptr, 1));
 		lua_pushboolean(lua_state_ptr, table_ptr->readonly);
@@ -63,7 +62,6 @@ namespace Uranium
 	}
 	int getnamecallmethod(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		const char* method_buffer = lua_namecallatom(lua_state_ptr, NULL);
 		lua_pushstring(lua_state_ptr, method_buffer);
 		return 1;
@@ -78,7 +76,6 @@ namespace Uranium
 	}
 	int iswriteable(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
 		LuaTable* table_ptr = hvalue(luaA_toobject(lua_state_ptr, 1));
 		uint8_t readonly = table_ptr->readonly;
@@ -87,7 +84,6 @@ namespace Uranium
 	}
 	int getfflag(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		luaL_checktype(lua_state_ptr, 1, LUA_TSTRING);
 		const char* name = luaL_checkstring(lua_state_ptr, 1);
 		for (Luau::FValue<bool>* flag = Luau::FValue<bool>::list; flag; flag = flag->next)
@@ -112,20 +108,23 @@ namespace Uranium
 	}
 	int getgenv(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		lua_pushvalue(lua_state_ptr, LUA_GLOBALSINDEX);
 		return 1;
 	}
 	int getrenv(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		lua_pushvalue(lua_state_ptr, LUA_GLOBALSINDEX); // idrk what u expect lol
 		return 1;
 	}
 	int getgc(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		lua_newtable(lua_state_ptr);
+		const int type = lua_type(lua_state_ptr, 1);
+		if (type != LUA_TBOOLEAN && type != LUA_TNONE && type != LUA_TNIL)
+		{
+			luaL_argerrorL(lua_state_ptr, 1, "boolean or nil expected");
+			return 0;
+		}
 		const bool include_tables = luaL_optboolean(lua_state_ptr, 1, false);
 		getgc_context context{0, lua_state_ptr, include_tables};
 		luaM_visitgco(lua_state_ptr, &context, getgc_visitor);
@@ -133,7 +132,6 @@ namespace Uranium
 	}
 	int getreg(lua_State* lua_state_ptr)
 	{
-		lua_checkstack(lua_state_ptr, 1);
 		lua_pushvalue(lua_state_ptr, LUA_REGISTRYINDEX);
 		return 1;
 	}

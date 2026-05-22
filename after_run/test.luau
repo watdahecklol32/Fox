@@ -6,14 +6,14 @@ const test_func = function(test_name_str: string, func: (...any) -> (...any)): (
     total_tests_uint8 += 1;
     const succ: boolean, response: any = pcall(func);
     if (not succ) then
-        print(`[X] Failed test {test_name_str}: {response}`);
+        print(`[❌] Failed test {test_name_str}: {response}`);
         return;
     end;
-    print("[!] Passed Test", test_name_str);
+    print("[✅] Passed Test", test_name_str);
     passed_tests_uint8 += 1;
     return;
 end;
-test_func("debug.getmetatable | getrawmetatable", function(...: any): ...any
+test_func("debug.getmetatable", function(...: any): ...any
     assert(debug.getmetatable, "debug.getmetatable was not pushed to the debug lib");
     const metatable: {[string]: any} = {
         __index = test_func;
@@ -24,7 +24,7 @@ test_func("debug.getmetatable | getrawmetatable", function(...: any): ...any
     assert(debug.getmetatable({}) == nil, "debug.getmetatable should return nil on objects that have no metatables");
     return;
 end);
-test_func("debug.setmetatable | setrawmetatable", function(...: any): ...any
+test_func("debug.setmetatable", function(...: any): ...any
     assert(debug.setmetatable, "debug.setmetatable was not pushed to debug lib");
     const metatable: {[string]: any} = {
         __index = function(...) return; end;
@@ -35,7 +35,7 @@ test_func("debug.setmetatable | setrawmetatable", function(...: any): ...any
     assert(getmetatable(object) ~= metatable, "The metatable did not change.");
     return;
 end);
-test_func("debug.getconstants | getconstants", function(...: any): ()
+test_func("debug.getconstants", function(...: any): ()
     assert(debug.getconstants, "debug.getconstants was not pushed to the debug lib");
     const func = function(): never
         game:GetService("Workspace")
@@ -92,11 +92,13 @@ end);
 test_func("debug.getconstant", function(...: any): ...any
     assert(debug.getconstant, "debug.getconstant was not pushed to the debug lib");
     const func = function(...: any): ()
-        print("gay", 1, 2, 3);
+        print("");
+        local a = "gay";
+        print(a);
         return;
     end;
     assert(debug.getconstant(func, 1) == "print", "First constant should be print");
-    assert(debug.getconstant(func, 3) == "gay", "Second constant should be gay");
+    assert(debug.getconstant(func, 4) == "gay", "Fourth constant should be gay");
     return;
 end);
 test_func("debug.getupvalue", function(...: any): ()
@@ -110,13 +112,17 @@ test_func("debug.getupvalue", function(...: any): ()
     return;
 end);
 test_func("debug.getstack", function(...: any): ...any
-   	local a = "a" .. "b"
-    -- print(a); -- fuck u luau optimizations, seriously, fuck u call ur loadk
-    for i,v in debug.getstack(1) do
-        print(i,v);
-    end;
-	assert(debug.getstack(1, 1) == "ab", "The first item in the stack should be 'ab'")
-	assert(debug.getstack(1)[1] == "ab", "The first item in the stack table should be 'ab'")
+   	assert(debug.getstack, "debug.getstack was not pushed to the debug lib");
+    local a: string = "a" .. "b";
+	assert(debug.getstack(1, 1) == "ab", "The first item in the stack should be 'ab'");
+	assert(debug.getstack(1)[1] == "ab", "The first item in the stack table should be 'ab'");    
+    return;
+end);
+test_func("debug.setstack", function(...: any): ...any
+    assert(debug.setstack, "debug.setstack was not pushed to the debug lib");
+    local a: string = "a".."b";
+    debug.setstack(1, 1, "gay");
+    assert(debug.getstack(1, 1) == "gay", "debug.setstack does not change items in the stack");
     return;
 end);
 test_func("debug.setconstant", function(...: any): ...any
@@ -326,6 +332,7 @@ test_func("Sanity Checks", function(...: any): ...any
         end);
         assert(not succ, "debug.setstack should error in a C closure");
     end;
+    runner(getgc, "getgc should error on non-boolean parameters", {});
     return;
 end);
 print("Done");
