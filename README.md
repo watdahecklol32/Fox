@@ -15,7 +15,7 @@ Enviorment is in the `Uranium` folder, testing suite is in `after_run`
 `iscclosure` `isnewcclousre` `newcclousre`, `hookfunction`, `hookmetamethod`, `islclosure`, `clonefunction`, `setinfo`, `getfunctionbytecode`, `dissassemble`
 
 ## Debug Library
-`debug.getproto`, `debug.setstack`, `debug.getstack`, `debug.getcode` `debug.setcode`, `getinfo`, `setmetatable`, `getmetatable`, `getconstants`, `getupvalues`, `setconstant`, `setupvalue`, `debug.getregistery`
+`debug.getproto`, `debug.setstack`, `debug.getstack`, `debug.getcode` `debug.setcode`, `debug.getinfo`, `debug.setmetatable`, `debug.getmetatable`, `debug.getconstants`, `debug.getupvalues`, `debug.setconstant`, `debug.setupvalue`, `debug.getregistery`
 
 
 ## Table Library
