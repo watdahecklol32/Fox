@@ -197,9 +197,9 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
                 setobj2n(lua_state_ptr, &target_function->l.uprefs[i], &replacement_function->l.uprefs[i]);
             }
             const Proto* target_proto = target_function->l.p;
-            Proto* replacement_proto = target_function->l.p;
+            Proto* replacement_proto = replacement_function->l.p;
             target_function->nupvalues = hook_num_upvalues;
-            target_function->l.p = replacement_function->l.p;
+            target_function->l.p = replacement_proto;
             luaC_objbarrier(lua_state_ptr, target_function, replacement_proto);
             target_function->env = replacement_function->env;
             luaC_objbarrier(lua_state_ptr, target_function, target_function->env);

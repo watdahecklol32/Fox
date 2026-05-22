@@ -434,6 +434,15 @@ test_func("hookfunction NC->NC", function(...: any): ...any
     assert(called, "should've set the upvalue");
     return;
 end);
+test_func("isfunctionhooked", function(...: any): ...any
+    assert(isfunctionhooked(rawlen), "should've returned true");
+    return;
+end);
+test_func("restorefunction", function(...: any): ...any
+    restorefunction(rawlen);
+    assert(not isfunctionhooked(rawlen), "should've unhooked rawlen");
+    return;
+end);
 test_func("Sanity Checks", function(...: any): ...any
     const runner = function(func: (...any) -> (...any), message_str: string, ...: any): ()
         const succ: boolean, response: any = pcall(func, ...);
@@ -529,12 +538,80 @@ test_func("Sanity Checks", function(...: any): ...any
     runner(clonefunction, "clonefunction should error on non-closure targets", newproxy(false));
     return;
 end);
-test_func("Stress test", function(...) -- doom
-    const h = function() end;
-    for i: number = 0, 5 do
-        local hook; hook = hookfunction(h, function(...) return hook(...); end);
+test_func("hookfunction L-L sanity checks", function(...: any): ...any
+    const func = function(): never
+        for _: never, _: never in true do end;
+        return;
     end;
-    h();
+    local hook_called: boolean = false;
+    do
+        local hook: (...any) -> (...any);
+        const replacement_func = function(...: any): never
+            hook_called = true;
+            return hook(...);
+        end;
+        hook = hookfunction(func, replacement_func);
+    end;
+    local passed: boolean = false;
+    xpcall(func, function(...)
+        for i: number = 0, 100 do
+            if (not debug.info(i, "f")) then
+                break;
+            end;
+            if (debug.info(i, "f") == replacement_func) then
+                return;
+            end;
+        end;
+        passed = true;
+        return;
+    end);
+    assert(hook_called, "hook never got called");
+    assert(passed, "hook leaked in callstack");
+    do
+        const func = function(...)
+            return;
+        end;
+        const old_line: number = debug.info(func, "l");
+        setfenv(func, {});
+        hookfunction(func, function(...: any): ()
+            return;
+        end);
+        const new_line: number = debug.info(func, "l");
+        if (getfenv(func) ~= getfenv()) then
+            print("enviorment changed - nothing i can do about it");
+        end;
+        --print(new_line, old_line);
+        assert(new_line == old_line, "line changed skull");
+    end;
+    return;
+end);
+test_func("hookfunction C->L sanity checks", function(...: any): ...any
+    local hook: (...any) -> (...any);
+    local called: boolean = false;
+    const replacement_func = function(...: any): never
+        called = true;
+        return hook(...);
+    end;
+    hook = hookfunction(rawequal, replacement_func);
+    do
+        local passed: boolean = false;
+        xpcall(rawequal, function(...: any): ()
+            print("hmm.. i wonder if my error message changed", ...);
+            for i: number = 0, 10 do
+                if (not debug.info(i, "f")) then
+                    break;
+                end;
+                if (debug.info(i, "f") == replacement_func) then
+                    return;
+                end;
+            end;
+            passed = true;
+            return;
+        end);
+        assert(called, "lol");
+        assert(passed, "leaked the hook in callstack");
+    end;
+    return;
 end);
 
 print("Done");
