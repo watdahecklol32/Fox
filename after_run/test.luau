@@ -269,6 +269,7 @@ test_func("clonefunction", function(...: any): ...any
     assert(cloned_lclosure ~= h, "shouldn't be the same");
     assert(cloned_lclosure(), "should return true");
     const cloned_cclosure = clonefunction(bit32.bxor);
+    assert(debug.info(cloned_cclosure, "n") == "bxor", "cloned C closures should retain their debug name");
     assert(cloned_cclosure ~= bit32.bxor, "C closure clone shouldnt be the same");
     assert(cloned_cclosure(1, 2) == 3, "should return for XOR of 1 and 2");
     return;
