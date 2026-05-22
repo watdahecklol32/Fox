@@ -552,7 +552,9 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::clonefunction, {"clonefunction", "clone_function", "CloneFunction", "cloneFunction"}},
     {Uranium::newcclosure, {"newcclosure", "newCClosure", "newcfunction", "NewCFunction"}},
     {Uranium::newlclosure, {"newlclosure", "newLClosure", "newluafunction", "NewLuaFunction"}},
-    {Uranium::hookfunction, {"hookfunction", "hook_function", "HookFunction", "hookFunction"}}
+    {Uranium::hookfunction, {"hookfunction", "hook_function", "HookFunction", "hookFunction"}},
+    {Uranium::isfunctionhooked, {"isfunctionhooked", "is_function_hooked", "isFunctionHooked", "IsFunctionHooked"}},
+    {Uranium::restorefunction, {"restorefunction", "restore_function", "RestoreFunction", "restoreFunction"}}
 };
     for (const function_table_struct& entry: function_table)
     {

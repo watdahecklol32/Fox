@@ -14,7 +14,7 @@
 #include "Types.hpp"
 // so sorry, but hours were wasted on debugging some of these funcs... i was too stupid to notice some were fucking up because of some luau optimizations, i'm not really good at this, and they are still bugg
 // i did try a rewrite
-
+// TODO: FIX DEBUG.GETPROTO ITS A BITCH!!!!!
 // TODO: debug.getproto: copy the code into a new 'cloned' proto so we dont have to push a blank userdata, while also making it safe
 static bool debug_getproto_visitor(void* raw, lua_Page* gc_page, GCObject* gc_object)
 {

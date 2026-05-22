@@ -14,7 +14,8 @@
 #include "lobject.h"
 #include "lstate.h"
 std::map<Closure*, Closure*> new_cclosure_map;
-static int newcclosure_cont(lua_State* lua_state_ptr, int status)
+std::map<Closure*, Closure*> restore_map;
+static int newcclosure_cont(lua_State* lua_state_ptr, const int status)
 {
     if (status != 0)
     {
@@ -155,6 +156,10 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
     lua_getglobal(lua_state_ptr, "clonefunction");
     lua_pushvalue(lua_state_ptr, 1);
     lua_call(lua_state_ptr, 1, 1);
+    if (restore_map.find(target_function) == restore_map.end())
+    {
+        restore_map[target_function] = clvalue(luaA_toobject(lua_state_ptr, -1));
+    }
     if (!target_function->isC && !replacement_function->isC) // L-L hook
     {
         // std :: cout << "L-L hook" << std :: endl;
@@ -162,13 +167,13 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
         {
             // directly copying upvalues when the hook has more upvalues results in a out of bounds write
             // the solution is simple: use newlclosure to wrap the hook
+            const Proto* target_proto = target_function->l.p;
             clvalue(luaA_toobject(lua_state_ptr, -1))->env = target_function->env; // god, why?
             lua_getglobal(lua_state_ptr, "newlclosure");
             lua_pushvalue(lua_state_ptr, 2);
             lua_call(lua_state_ptr, 1, 1);
             const Closure* wrapper = clvalue(luaA_toobject(lua_state_ptr, -1));
             Proto* wrapper_proto = wrapper->l.p;
-            const Proto* target_proto = target_function->l.p;
             target_function->l.p = wrapper_proto;
             luaC_objbarrier(lua_state_ptr, target_function, target_proto);
             target_function->env = wrapper->env;
@@ -276,6 +281,53 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
         return 1;
     }
     luaL_argerror(lua_state_ptr, 1, "unsupported hook");
+    return 0;
+}
+int isfunctionhooked(lua_State* lua_state_ptr)
+{
+    luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
+    lua_pushboolean(lua_state_ptr, restore_map.count(clvalue(luaA_toobject(lua_state_ptr, 1))) > 0);
+    return 1;
+}
+int restorefunction(lua_State* lua_state_ptr)
+{
+    luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
+    Closure* function_ptr = clvalue(luaA_toobject(lua_state_ptr, 1));
+    const auto it = restore_map.find(function_ptr);
+    if (it == restore_map.end())
+    { // TODO: not sure if its the standard for this to error, it errors on most executors, so.
+        luaL_argerror(lua_state_ptr, 1, "function is not hooked");
+        return 0;
+    }
+    // clangd LSP likes to whine like a bitch holy shit
+    const Closure* original_ptr = it->second;
+    restore_map.erase(it);
+    if (function_ptr->isC)
+    {
+        new_cclosure_map.erase(function_ptr);
+        function_ptr->c.f = original_ptr->c.f;
+        function_ptr->c.cont = original_ptr->c.cont;
+        function_ptr->c.debugname = original_ptr->c.debugname;
+        function_ptr->nupvalues = original_ptr->nupvalues;
+        for (int i = 0; i < original_ptr->nupvalues; i++)
+        {
+            setobj2n(lua_state_ptr, &function_ptr->c.upvals[i], &original_ptr->c.upvals[i]);
+        }
+    }
+    else
+    {
+        function_ptr->l.p = original_ptr->l.p;
+        luaC_objbarrier(lua_state_ptr, function_ptr, original_ptr->l.p);
+        function_ptr->env = original_ptr->env;
+        luaC_objbarrier(lua_state_ptr, function_ptr, function_ptr->env);
+        function_ptr->nupvalues = original_ptr->nupvalues;
+        function_ptr->stacksize = original_ptr->stacksize;
+        function_ptr->preload = original_ptr->preload;
+        for (int i = 0; i < original_ptr->nupvalues; i++)
+        {
+            setobj2n(lua_state_ptr, &function_ptr->l.uprefs[i], &original_ptr->l.uprefs[i]);    
+        }
+    }
     return 0;
 }
 }

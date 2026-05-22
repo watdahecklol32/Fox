@@ -8,4 +8,6 @@ namespace Uranium
     int newcclosure(lua_State* lua_state_ptr);
     int newlclosure(lua_State* L);
     int hookfunction(lua_State* lua_state_ptr);
+    int isfunctionhooked(lua_State* lua_state_ptr);
+    int restorefunction(lua_State* lua_state_ptr);
 }
