@@ -223,10 +223,10 @@ end);
 test_func("getfflag", function(...: any): ...any
     assert(getfflag, "getfflag was not pushed");
     assert(getfflag("LuauStacklessPcall"), "getfflag did not return true for an enabled FFlag");
-    print("getfflag: LuauStacklessPcall:", getfflag("LuauStacklessPcall"));
     return;
 end);
-test_func("getgc", function(...: any): ()
+test_func("getgc", function(...: any): ...any
+    assert(getgc, "getgc was not pushed");
     const _table: {hi: boolean} = {["hi"] = true};
     const _buffer: buffer = buffer.create(0);
     local function UwU(): ()
@@ -239,6 +239,38 @@ test_func("getgc", function(...: any): ()
         end;
     end;
     assert(#getgc_results == 3, "getgc did not find all the target items");
+    return;
+end);
+test_func("identifyexecutor", function(...: any): ...any
+    assert(identifyexecutor, "identifyexecutor was not pushed");
+    const str: string, ver: string = identifyexecutor();
+    assert(type(str) == "string" and str == "mreower", "wtf 1");
+    assert(type(ver) == "string" and ver == "0.0.0", "wtf 2");
+    return;
+end);
+test_func("islclosure", function(...: any): ...any
+    assert(islclosure, "was not pushed");
+    assert(not islclosure(print), "should be false");
+    assert(islclosure(function() end), "should be true");
+    return;
+end);
+test_func("iscclosure", function(...: any): ...any
+    assert(iscclosure, "iscclosure was not pushed");
+    assert(iscclosure(print), "should be true");
+    assert(not iscclosure(function() end), "should be false");
+    return;
+end);
+test_func("clonefunction", function(...: any): ...any
+    assert(clonefunction, "clonefunction was not pushed");
+    const h = function(): boolean
+        return true;
+    end;
+    const cloned_lclosure = clonefunction(h);
+    assert(cloned_lclosure ~= h, "shouldn't be the same");
+    assert(cloned_lclosure(), "should return true");
+    const cloned_cclosure = clonefunction(bit32.bxor);
+    assert(cloned_cclosure ~= bit32.bxor, "C closure clone shouldnt be the same");
+    assert(cloned_cclosure(1, 2) == 3, "should return for XOR of 1 and 2");
     return;
 end);
 test_func("Sanity Checks", function(...: any): ...any

@@ -14,6 +14,8 @@ target_sources(Lute.Runtime PRIVATE
     src/uvutils.cpp
     Uranium/Debug.cpp
     Uranium/Table.cpp
+    Uranium/Miscellaneous.cpp
+    Uranium/Closure.cpp
 )
 
 target_compile_features(Lute.Runtime PUBLIC cxx_std_17)

@@ -68,10 +68,10 @@ int debug_getconstants(lua_State* lua_state_ptr)
     const Closure* function_ptr = clvalue(luaA_toobject(lua_state_ptr, 1));
     lua_newtable(lua_state_ptr);
     const Proto* proto_ptr = function_ptr->l.p;
-    const size_t constant_size = proto_ptr->sizek;
+    const int constant_size = proto_ptr->sizek;
     const TValue* constant_pool = proto_ptr->k;
-    size_t table_index = 1;
-    for (size_t i = 0; i < constant_size; i++)
+    int table_index = 1;
+    for (int i = 0; i < constant_size; i++)
     {
         const TValue* value = &constant_pool[i];
         if (!value || value->tt == LUA_TFUNCTION || value->tt == LUA_TNIL || value->tt == LUA_TTABLE)
