@@ -377,6 +377,7 @@ test_func("hookfunction C->C hook", function(...): ...any -- shouldnt differ tha
     local called: boolean = false;
     const old_info: {[number]: number} = {debug.info(rawlen, "slnaf")};
     const old_func_ptr: (...any) -> (...any) = rawlen;
+    print(debug.info(rawlen, "slnaf"));
     local hook: (...any) -> (...any); hook = hookfunction(rawlen, newcclosure(function(...: any): ...any
         print("C->C hook called")
         called = true;
@@ -384,11 +385,8 @@ test_func("hookfunction C->C hook", function(...): ...any -- shouldnt differ tha
     end));
     rawlen({})
     assert(called, "bro lol");
-    for i: number, v: any in {debug.info(rawlen, "slnaf")} do
-        if (old_info[i] ~= v) then
-            print("hookdetected", i, old_info[i], v);
-        end;
-    end;
+    assert(rawlen == old_func_ptr, "this is just unacceptable");
+    print(debug.info(rawlen, "slnaf"));
     return;
 end);
 test_func("hookfunction L-L", function(...: any): ...any
@@ -397,16 +395,29 @@ test_func("hookfunction L-L", function(...: any): ...any
         return true;
     end;
     local called: boolean = false;
-    print(debug.info(hi, "slnaf"));
+    --print(debug.info(hi, "slnaf"));
     hookfunction(hi, function(...: any): boolean
          print("L->L hook called")
         called = true;
         return false;
     end);
-    print(debug.info(hi, "slnaf"));
+    --print(debug.info(hi, "slnaf"));
     hi();
     assert(called, "didnt even call");
     assert(not hi(), "should'dve returned false");
+    return;
+end);
+test_func("hookfunction L->NC", function(...: any): ...any  
+    const h: () -> boolean = function()
+        return true;
+    end;
+    local upvalue_test: boolean = false;
+    hookfunction(h, newcclosure(function(...)
+        upvalue_test = true;
+        return false;
+    end));
+    assert(not h(), "should've returned false");
+    assert(upvalue_test, "did not set the upvalue");
     return;
 end);
 test_func("hookfunction NC->NC", function(...: any): ...any
@@ -419,8 +430,8 @@ test_func("hookfunction NC->NC", function(...: any): ...any
         print("NC->NC hook called");
         return false;
     end));
-    assert(called, "should've been called");
     assert(not hi(), "should've returned false");
+    assert(called, "should've set the upvalue");
     return;
 end);
 test_func("Sanity Checks", function(...: any): ...any
@@ -525,7 +536,6 @@ test_func("Stress test", function(...) -- doom
     end;
     h();
 end);
-
 
 print("Done");
 print("Passed:", passed_tests_uint8);

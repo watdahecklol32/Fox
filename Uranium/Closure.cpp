@@ -130,24 +130,42 @@ int newlclosure(lua_State* L)
 }
 int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
 {
+    // what needs to be suppported:
+    // bleh, for hooks involving newccloure we need to 'unwrap' them and get the orginal function so we dont hook the newccloure handler, that'd be really bad.
+    // L->NC
+    // NC->L
+    // NC->NC
+    // buggy, still...
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     luaL_checktype(lua_state_ptr, 2, LUA_TFUNCTION);
     Closure* target_function = clvalue(luaA_toobject(lua_state_ptr, 1));
     Closure* replacement_function = clvalue(luaA_toobject(lua_state_ptr, 2));
+    if (target_function->isC && target_function->c.f == newcclosure_handler_func)
+    {
+        const auto it = new_cclosure_map.find(target_function);
+        if (it != new_cclosure_map.end())
+        {
+            luaC_threadbarrier(lua_state_ptr);
+            setclvalue(lua_state_ptr, lua_state_ptr->base, it->second);
+            target_function = it->second;
+        }
+    }
+    const int target_num_upvalues = target_function->nupvalues;
+    const int hook_num_upvalues = replacement_function->nupvalues;
+    lua_getglobal(lua_state_ptr, "clonefunction");
+    lua_pushvalue(lua_state_ptr, 1);
+    lua_call(lua_state_ptr, 1, 1);
     if (!target_function->isC && !replacement_function->isC) // L-L hook
     {
-        std :: cout << "L-L hook" << std :: endl;
-        lua_clonefunction(lua_state_ptr, 1);
-        clvalue(luaA_toobject(lua_state_ptr, -1))->env = target_function->env; // god, why?
-        const int target_num_upvalues = target_function->nupvalues;
-        const int hook_num_upvalues = replacement_function->nupvalues;
+        // std :: cout << "L-L hook" << std :: endl;
         if (hook_num_upvalues > target_num_upvalues)
         {
             // directly copying upvalues when the hook has more upvalues results in a out of bounds write
             // the solution is simple: use newlclosure to wrap the hook
+            clvalue(luaA_toobject(lua_state_ptr, -1))->env = target_function->env; // god, why?
             lua_getglobal(lua_state_ptr, "newlclosure");
             lua_pushvalue(lua_state_ptr, 2);
-            lua_call(lua_state_ptr, 1, 1); 
+            lua_call(lua_state_ptr, 1, 1);
             const Closure* wrapper = clvalue(luaA_toobject(lua_state_ptr, -1));
             Proto* wrapper_proto = wrapper->l.p;
             const Proto* target_proto = target_function->l.p;
@@ -164,13 +182,14 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
             wrapper_proto->source = target_proto->source;
             wrapper_proto->is_vararg = target_proto->is_vararg;
             lua_pop(lua_state_ptr, 1); // be gone
+            return 1;
         }
         else
         {
             // if the hook doesnt have more upvalues than the target it's safe to directly copy
             for (int i = 0; i < hook_num_upvalues; i++)
             {
-                setobj2n(lua_state_ptr, &target_function->l.uprefs[i], &replacement_function->l.uprefs[i])
+                setobj2n(lua_state_ptr, &target_function->l.uprefs[i], &replacement_function->l.uprefs[i]);
             }
             const Proto* target_proto = target_function->l.p;
             Proto* replacement_proto = target_function->l.p;
@@ -188,7 +207,74 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
         }
         return 1;
     }
-
+    if (target_function->isC && replacement_function->isC) // C-C hook
+    {
+        const char* old_debug_name_str = target_function->c.debugname;
+        const auto old_map_it = new_cclosure_map.find(target_function);
+        if (old_map_it != new_cclosure_map.end())
+        {
+            new_cclosure_map[clvalue(luaA_toobject(lua_state_ptr, -1))] = old_map_it->second;
+        }
+        if (hook_num_upvalues > target_num_upvalues)
+        {
+            // ye kinda the same here 2
+            lua_ref(lua_state_ptr, 2);
+            new_cclosure_map[target_function] = replacement_function;
+            target_function->c.f = newcclosure_handler_func;
+            target_function->c.cont = newcclosure_cont;
+            target_function->nupvalues = 0;
+            target_function->c.debugname = old_debug_name_str;
+            return 1;
+        }
+        else
+        {
+            for (int i = 0; i < hook_num_upvalues; i++)
+            {
+                setobj2n(lua_state_ptr, &target_function->l.uprefs[i], &replacement_function->l.uprefs[i]);
+            }
+            target_function->c.f = replacement_function->c.f;
+            target_function->c.cont = replacement_function->c.cont;
+            // target_function->c.debugname = replacement_function->c.debugname;
+            target_function->c.debugname = old_debug_name_str;
+            target_function->nupvalues = hook_num_upvalues;
+            const auto repl_map_it = new_cclosure_map.find(replacement_function);
+            if (repl_map_it != new_cclosure_map.end())
+            {
+                new_cclosure_map[target_function] = repl_map_it->second;
+            }
+            else
+            {
+                new_cclosure_map.erase(target_function);
+            }
+        }
+        return 1;
+    }
+    if (target_function->isC && !replacement_function->isC) // C-L hook
+    {
+        // i'm lazy so i'm just gonna wrap the luau closure into newcclosure'd this is probably really slow, but eh whatever lol
+        lua_getglobal(lua_state_ptr, "newcclosure");
+        lua_pushvalue(lua_state_ptr, 2);
+        lua_call(lua_state_ptr, 1, 1);
+        lua_remove(lua_state_ptr, 3); 
+        lua_getglobal(lua_state_ptr, "hookfunction");
+        lua_pushvalue(lua_state_ptr, 1);
+        lua_pushvalue(lua_state_ptr, 3);
+        lua_call(lua_state_ptr, 2, 1); 
+        return 1;
+    }
+    if (!target_function->isC && replacement_function->isC) // L-C hook
+    {
+        // same as be 4
+        lua_getglobal(lua_state_ptr, "newlclosure");
+        lua_pushvalue(lua_state_ptr, 2);
+        lua_call(lua_state_ptr, 1, 1);
+        lua_remove(lua_state_ptr, 3); 
+        lua_getglobal(lua_state_ptr, "hookfunction");
+        lua_pushvalue(lua_state_ptr, 1);
+        lua_pushvalue(lua_state_ptr, 3);
+        lua_call(lua_state_ptr, 2, 1); 
+        return 1;
+    }
     luaL_argerror(lua_state_ptr, 1, "unsupported hook");
     return 0;
 }
