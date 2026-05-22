@@ -69,12 +69,9 @@ namespace Uranium
         luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
         lua_ref(lua_state_ptr, 1);
         const char* debug_name_str = nullptr;
-        if (lua_isnone(lua_state_ptr, 2))
+        if (!lua_isnone(lua_state_ptr, 2))
         {
-            debug_name_str = "";
-        }else 
-        {
-            luaL_checktype(lua_state_ptr, 2, LUA_TSTRING);
+            luaL_checktype(lua_state_ptr, 2);
             debug_name_str = lua_tostring(lua_state_ptr, 2);
         }
         lua_pushcclosurek(lua_state_ptr, newcclosure_handler_func, debug_name_str, 0, newcclosure_cont);
