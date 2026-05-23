@@ -37,7 +37,9 @@ static int newcclosure_handler_func(lua_State* lua_state_ptr)
     setclvalue(lua_state_ptr, lua_state_ptr->top, it->second);
     lua_state_ptr->top += 1;
     lua_insert(lua_state_ptr, 1);
+    lua_state_ptr->nCcalls += 1;
     const int result = lua_pcall(lua_state_ptr, num_args_passed, LUA_MULTRET, 0);
+    lua_state_ptr->nCcalls -= 1;
     if (result != 0)
     {
         if (lua_isstring(lua_state_ptr, -1))
