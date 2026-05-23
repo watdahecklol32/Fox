@@ -63,7 +63,7 @@ namespace Uranium
     int setclipboard(lua_State* lua_state_ptr)
     {
         luaL_checktype(lua_state_ptr, 1, LUA_TSTRING);
-        std::string provided_str = lua_tostring(lua_state_ptr, 1);
+        const char* provided_str = lua_tostring(lua_state_ptr, 1);
         set_clipboard(provided_str);
         return 0;
     }
