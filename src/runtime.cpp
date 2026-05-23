@@ -21,7 +21,7 @@
 #include "../Uranium/Table.hpp"
 #include "../Uranium/Miscellaneous.hpp"
 #include "../Uranium/Closure.hpp"
-
+#include "../Uranium/Console.hpp"
 
 
 static void lua_close_checked(lua_State* L)
@@ -557,7 +557,9 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::restorefunction, {"restorefunction", "restore_function", "RestoreFunction", "restoreFunction"}},
     {Uranium::hookmetamethod, {"hookmetamethod", "hook_meta_method", "hookMetaMethod", "HookMetaMethod", "hookmetafish", "hook_meta_fish", "HookMetaFish", "hookMetaFish", "hookmetafield", "HookMetaField", "hook_meta_field", "HookMetaField", "hookMT", "hook_mt", "HookMT"}},
     {Uranium::ismetamethodhooked, {"ismetamethodhooked", "is_metamethod_hooked", "is_meta_method_hooked", "IsMetaMethodHooked", "ismetafishhooked", "is_meta_fish_hooked", "isMetaFishHooked", "ismetafieldhooked", "is_meta_field_hooked", "is_metafield_hooked", "IsMetaFieldHooked"}},
-    {Uranium::restoremetamethod, {"restoremetamethod", "restore_metamethod", "restoreMetaMethod", "RestoreMetaMethod", "restoremetafield", "restore_metafield", "restoreMetaField", "RestoreMetaField", "restoremetafish", "restoreMetaFish", "restore_meta_fish", "RestoreMetaFish"}}
+    {Uranium::restoremetamethod, {"restoremetamethod", "restore_metamethod", "restoreMetaMethod", "RestoreMetaMethod", "restoremetafield", "restore_metafield", "restoreMetaField", "RestoreMetaField", "restoremetafish", "restoreMetaFish", "restore_meta_fish", "RestoreMetaFish"}},
+    {Uranium::rconsolecreate, {"consolecreate","rconsolecreate"}},
+    {Uranium::setclipboard, {"setclipboard"}}
 };
     for (const function_table_struct& entry: function_table)
     {
