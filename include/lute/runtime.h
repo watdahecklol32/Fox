@@ -175,3 +175,5 @@ struct ResumeTokenData
 ResumeToken getResumeToken(lua_State* L);
 
 lua_State* setupState(Runtime& runtime, std::function<void(lua_State*)> doBeforeSandbox);
+
+void run_im_gui(std::function<void(const std::string&)> onExecute);

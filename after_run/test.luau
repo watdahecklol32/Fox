@@ -443,6 +443,69 @@ test_func("restorefunction", function(...: any): ...any
     assert(not isfunctionhooked(rawlen), "should've unhooked rawlen");
     return;
 end);
+test_func("hookmetamethod", function(...: any): ...any
+    assert(hookmetamethod, "hookmetamethod was not pushed");
+    const target_metatable: setmetatable<T, MT> = setmetatable({}, {
+        __index = function(...)
+            return true;
+        end;
+        __metatable = "locked";
+    });
+    local hook_called: boolean = false;
+    do
+        local hook: (...any) -> (...any); hook = hookmetamethod(target_metatable, "__index", function(...: any): ...any
+            hook_called = true;
+            if (not hook()) then
+                hook_called = false;
+                return;
+            end;
+            return false;
+        end);
+        pcall(function() const h: boolean = target_metatable.__; return; end);
+        assert(hook_called, "hook never got called or 'hook' returned illegal value");
+    end;
+    hook_called = false;
+    do
+        const target_proxy: any = newproxy(true);
+        const metatable: {[string]: any} = getmetatable(target_proxy);
+        metatable.__namecall = function(...: any): ...any
+            return true;
+        end;
+        metatable.__metatable = "locked";
+        do
+            local hook: (...any) -> (...any); hook = hookmetamethod(target_proxy, "__namecall", function(...: any): ...any
+                hook_called = true;
+                if (not hook()) then
+                    hook_called = false;
+                    return;
+                end;
+                return false;
+            end);
+            pcall(function(...) target_proxy:__(); end);
+            assert(hook_called, "userdata hook never got called or 'hook' returned incorrect value");
+        end;
+    end;
+    return;
+end);
+test_func("ismetamethodhooked", function(...: any): ...any
+    assert(ismetamethodhooked, "ismetamethodhooked was not pushed");
+    do
+        const metatable: setmetatable<T, MT> = setmetatable({}, {__index = function() end, __metatable = "locked"});
+        hookmetamethod(metatable, "__index", function() end);
+        assert(ismetamethodhooked(metatable, "__index"), "did not return true for a metamethod hooked with hookmetamethod");
+    end;
+    return;
+end);
+test_func("restoremetamethod", function(...: any): ...any
+    assert(restoremetamethod, "restoremetamethod was not pushed");
+    do
+        const metatable: setmetatable<T, MT> = setmetatable({}, {__index = function() end, __metatable = "locked"});
+        hookmetamethod(metatable, "__index", function() end);
+        restoremetamethod(metatable, "__index");
+        assert(not ismetamethodhooked(metatable, "__index"), "did not restore metamethod");
+    end;
+    return;
+end);
 test_func("Sanity Checks", function(...: any): ...any
     const runner = function(func: (...any) -> (...any), message_str: string, ...: any): ()
         const succ: boolean, response: any = pcall(func, ...);
@@ -612,6 +675,12 @@ test_func("hookfunction C->L sanity checks", function(...: any): ...any
         assert(passed, "leaked the hook in callstack");
     end;
     return;
+end);
+test_func("hookfunction same hook-target test", function(...: any): ...any
+   local h = function() end;
+   hookfunction(h, h);
+   assert(not isfunctionhooked(h), "should be false");
+   return;
 end);
 
 print("Done");

@@ -143,6 +143,7 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
     Closure* replacement_function = clvalue(luaA_toobject(lua_state_ptr, 2));
     if (target_function == replacement_function) // since apparently hooking functions with them selfs are SOOO useful??
     {
+        // std :: cout << "same func hook detected" << std :: endl;
         lua_getglobal(lua_state_ptr, "restorefunction");
         lua_pushvalue(lua_state_ptr, 1);
         lua_remove(lua_state_ptr, 2);
@@ -335,6 +336,89 @@ int restorefunction(lua_State* lua_state_ptr)
             setobj2n(lua_state_ptr, &function_ptr->l.uprefs[i], &original_ptr->l.uprefs[i]);    
         }
     }
+    return 0;
+}
+int hookmetamethod(lua_State* lua_state_ptr)
+{
+    luaL_checkany(lua_state_ptr, 1);
+    luaL_checktype(lua_state_ptr, 2, LUA_TSTRING);
+    luaL_checktype(lua_state_ptr, 3, LUA_TFUNCTION);
+    if (!lua_getmetatable(lua_state_ptr, 1))
+    {
+        luaL_argerrorL(lua_state_ptr, 1, "Object has no metatable");
+        return 0;
+    }
+    lua_getfield(lua_state_ptr, -1, lua_tostring(lua_state_ptr, 2));
+    if (lua_isnil(lua_state_ptr, -1))
+    {
+        lua_pop(lua_state_ptr, 2);
+        luaL_argerrorL(lua_state_ptr, 2, "Invalid metamethod");
+        return 0;
+    }
+    if (!lua_isfunction(lua_state_ptr, -1))
+    {
+        lua_pop(lua_state_ptr, 2);
+        luaL_argerrorL(lua_state_ptr, 2, "Metamethod is not a function");
+        return 0;
+    }
+    lua_getglobal(lua_state_ptr, "hookfunction");
+    lua_pushvalue(lua_state_ptr, -2);
+    lua_pushvalue(lua_state_ptr, 3);
+    lua_call(lua_state_ptr, 2, 1);
+    return 1;
+}
+int ismetamethodhooked(lua_State* lua_state_ptr)
+{
+    luaL_checkany(lua_state_ptr, 1);
+    luaL_checktype(lua_state_ptr, 2, LUA_TSTRING);
+    if (!lua_getmetatable(lua_state_ptr, 1))
+    {
+        luaL_argerrorL(lua_state_ptr, 1, "Object has no metatable");
+        return 0;
+    }
+    lua_getfield(lua_state_ptr, -1, lua_tostring(lua_state_ptr, 2));
+    if (lua_isnil(lua_state_ptr, -1))
+    {
+        lua_pop(lua_state_ptr, 2);
+        luaL_argerrorL(lua_state_ptr, 2, "Invalid metamethod");
+        return 0;
+    }
+    if (!lua_isfunction(lua_state_ptr, -1))
+    {
+        lua_pop(lua_state_ptr, 2);
+        luaL_argerrorL(lua_state_ptr, 2, "Metamethod is not a function");
+        return 0;
+    }
+    lua_getglobal(lua_state_ptr, "isfunctionhooked");
+    lua_pushvalue(lua_state_ptr, -2);
+    lua_call(lua_state_ptr, 1, 1);
+    return 1;
+}
+int restoremetamethod(lua_State* lua_state_ptr)
+{
+    luaL_checkany(lua_state_ptr, 1);
+    luaL_checktype(lua_state_ptr, 2, LUA_TSTRING);
+    if (!lua_getmetatable(lua_state_ptr, 1))
+    {
+        luaL_argerrorL(lua_state_ptr, 1, "Object has no metatable");
+        return 0;
+    }
+    lua_getfield(lua_state_ptr, -1, lua_tostring(lua_state_ptr, 2));
+    if (lua_isnil(lua_state_ptr, -1))
+    {
+        lua_pop(lua_state_ptr, 2);
+        luaL_argerrorL(lua_state_ptr, 2, "Invalid metamethod");
+        return 0;
+    }
+    if (!lua_isfunction(lua_state_ptr, -1))
+    {
+        lua_pop(lua_state_ptr, 2);
+        luaL_argerrorL(lua_state_ptr, 2, "Metamethod is not a function");
+        return 0;
+    }
+    lua_getglobal(lua_state_ptr, "restorefunction");
+    lua_pushvalue(lua_state_ptr, -2);
+    lua_call(lua_state_ptr, 1, 0);
     return 0;
 }
 }
