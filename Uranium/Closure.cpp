@@ -141,6 +141,13 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
     luaL_checktype(lua_state_ptr, 2, LUA_TFUNCTION);
     Closure* target_function = clvalue(luaA_toobject(lua_state_ptr, 1));
     Closure* replacement_function = clvalue(luaA_toobject(lua_state_ptr, 2));
+    if (target_function == replacement_function) // since apparently hooking functions with them selfs are SOOO useful??
+    {
+        lua_getglobal(lua_state_ptr, "restorefunction");
+        lua_pushvalue(lua_state_ptr, 1);
+        lua_remove(lua_state_ptr, 2);
+        return 0;
+    }
     if (target_function->isC && target_function->c.f == newcclosure_handler_func)
     {
         const auto it = new_cclosure_map.find(target_function);
