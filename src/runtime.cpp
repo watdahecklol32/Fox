@@ -563,6 +563,7 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::setclipboard, {"setclipboard"}},
     {Uranium::setunhookable, {"setunhookable", "set_un_hookable", "SetUnHookAble", "setUnHookAble", "markunhookable", "mark_un_hookable", "mark_un_hook_able"}},
     {Uranium::gethookedfunctions, {"gethookedfunctions", "get_hooked_functions", "getHookedFunctions", "GetHookedFunctions"}},
+    {Uranium::getfunctionbytecode, {"getfunctionbytecode", "get_function_bytecode", "GetFunctionBytecode", "getfunctionByteCode"}},
     {Uranium::getfunctionfromthread, {"getfunctionfromthread", "get_function_from_thread", "GetFunctionFromThread"}},
     {Uranium::gettenv, {"gettenv", "get_thread_enviorment", "get_t_env", "getthreadenviorment", "GeTThreadEnviorment"}}
 };

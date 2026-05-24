@@ -79,8 +79,6 @@ test_func("debug.getproto", function(...: any): ...any
         end;
         return;
     end;
-    const proto_proxy: any = debug.getproto(test_ok, 1, false);
-    assert(type(proto_proxy) == "userdata", "nuh uh");
     const proto: (...any) -> (...any) = debug.getproto(test_ok, 1, true)[1];
     assert(proto() == 1, "Didnt return one");
     return;
@@ -581,6 +579,15 @@ test_func("getfunctionfromthread", function(...: any): ...any
     assert(getfunctionfromthread(thread) == func, "did not return the correct function");
     const thread: thread = coroutine.create(func);
     assert(getfunctionfromthread(thread) == func, "did not return the correct function");
+    return;
+end);
+test_func("getfunctionbytecode", function(...: any): ...any
+    const func = function(): number
+        const NEWCLOSURE = function(): () return; end;
+        print("mreeowoqooaoao");
+        return 0;
+    end;
+    assert(#getfunctionbytecode(func) == 28, "Incorrect bytecode");
     return;
 end);
 test_func("Sanity Checks", function(...: any): ...any

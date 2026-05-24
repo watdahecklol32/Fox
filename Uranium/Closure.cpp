@@ -8,6 +8,7 @@
 #include <map>
 #include <regex>
 #include <string>
+#include "Thread.hpp"
 #include "lapi.h"
 #include "lfunc.h"
 #include "lgc.h"
@@ -453,6 +454,19 @@ int gethookedfunctions(lua_State* lua_state_ptr)
         lua_state_ptr->top += 1;
         lua_rawseti(lua_state_ptr, -2, table_index++);
     }
+    return 1;
+}
+int getfunctionbytecode(lua_State *lua_state_ptr)
+{
+    luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
+    if (lua_iscfunction(lua_state_ptr, 1))
+    {
+        luaL_argerrorL(lua_state_ptr, 1, "Luau closure expected");
+        return 0;
+    }
+    const Closure* function_ptr = clvalue(luaA_toobject(lua_state_ptr, 1));
+    const Proto* proto_ptr = function_ptr->l.p;
+    lua_pushlstring(lua_state_ptr, reinterpret_cast<const char*>(proto_ptr->code), proto_ptr->sizecode * sizeof(Instruction));
     return 1;
 }
 }

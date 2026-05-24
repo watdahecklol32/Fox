@@ -12,10 +12,7 @@
 #include "lstate.h"
 #include "ldebug.h"
 #include "Types.hpp"
-// so sorry, but hours were wasted on debugging some of these funcs... i was too stupid to notice some were fucking up because of some luau optimizations, i'm not really good at this, and they are still bugg
-// i did try a rewrite`
 // TODO: FIX DEBUG.GETPROTO ITS A BITCH!!!!!
-// TODO: debug.getproto: copy the code into a new 'cloned' proto so we dont have to push a blank userdata, while also making it safe
 static bool debug_getproto_visitor(void* raw, lua_Page* gc_page, GCObject* gc_object)
 {
     if (gc_object->gch.tt != LUA_TFUNCTION)
@@ -167,34 +164,16 @@ int debug_getprotos(lua_State* lua_state_ptr)
     }
     const Closure* function_ptr = clvalue(luaA_toobject(lua_state_ptr, 1));
     const Proto* proto_ptr = function_ptr->l.p;
-    bool activated = true;
-    if (!lua_isnoneornil(lua_state_ptr, 2))
-    {
-        luaL_checktype(lua_state_ptr, 2, LUA_TBOOLEAN);
-        activated = lua_toboolean(lua_state_ptr, 2);
-    }
     const int proto_size = proto_ptr->sizep;
     lua_newtable(lua_state_ptr);
-    if (activated)
+    for (int i = 0; i < proto_size; i++)
     {
-        for (int i = 0; i < proto_size; i++)
-        {
-            Proto* target = proto_ptr->p[i];
-            Closure* proto_func = luaF_newLclosure(lua_state_ptr, target->nups, function_ptr->env, target);
-            luaC_threadbarrier(lua_state_ptr);
-            setclvalue(lua_state_ptr, lua_state_ptr->top, proto_func);
-            lua_state_ptr->top += 1;
-            lua_rawseti(lua_state_ptr, -2, i + 1);
-        }
-    }
-    else
-    {
-        for (int i = 0; i < proto_size; i++)
-        {
-            const Proto* target = proto_ptr->p[i];
-            lua_pushlightuserdata(lua_state_ptr, (void*)target);
-            lua_rawseti(lua_state_ptr, -2, i + 1);
-        }
+        Proto* target_proto = proto_ptr->p[i];
+        const Closure* proto_func = luaF_newLclosure(lua_state_ptr, target_proto->nups, function_ptr->env, target_proto);
+        luaC_threadbarrier(lua_state_ptr);
+        setclvalue(lua_state_ptr, lua_state_ptr->top, proto_func);
+        lua_state_ptr->top += 1;
+        lua_rawseti(lua_state_ptr, -2, i + 1);
     }
     return 1;
 }
@@ -224,7 +203,10 @@ int debug_getproto(lua_State* lua_state_ptr)
     }
     if (!activated)
     {
-        lua_pushlightuserdata(lua_state_ptr, (void*)target);
+        const Closure* proto_func = luaF_newLclosure(lua_state_ptr, target->nups, function_ptr->env, target);
+        luaC_threadbarrier(lua_state_ptr);
+        setclvalue(lua_state_ptr, lua_state_ptr->top, proto_func);
+        lua_state_ptr->top += 1;
         return 1;
     }
     gc_search_proto context{target, {}};
