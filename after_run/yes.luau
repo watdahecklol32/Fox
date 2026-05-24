@@ -1,1 +1,0 @@
-setclipboard("bro wahhahaa");

@@ -109,14 +109,18 @@ int clonefunction(lua_State* lua_state_ptr)
         return 1;
     }
     lua_clonefunction(lua_state_ptr, 1);
+    Closure* original_function_ptr = clvalue(luaA_toobject(lua_state_ptr, 1));
+    Closure* cloned_function_ptr = clvalue(luaA_toobject(lua_state_ptr, -1));
+    cloned_function_ptr->env = original_function_ptr->env;
+    luaC_objbarrier(lua_state_ptr, cloned_function_ptr, cloned_function_ptr->env);
     return 1;
 }
 int newlclosure(lua_State* lua_state_ptr)
 {
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     lua_newtable(lua_state_ptr);
-    lua_getfenv(lua_state_ptr, 1); // TODO: this is bad!!! create a new enviorment instend!
-    lua_setmetatable(lua_state_ptr, -2);
+    //lua_getfenv(lua_state_ptr, 1); // TODO: this is bad!!! create a new enviorment instend!
+    //lua_setmetatable(lua_state_ptr, -2);
     lua_pushvalue(lua_state_ptr, 1);
     lua_setfield(lua_state_ptr, -2, "yeswhatever");
     const int enviorment_index = lua_gettop(lua_state_ptr);

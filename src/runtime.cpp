@@ -565,7 +565,9 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::gethookedfunctions, {"gethookedfunctions", "get_hooked_functions", "getHookedFunctions", "GetHookedFunctions"}},
     {Uranium::getfunctionbytecode, {"getfunctionbytecode", "get_function_bytecode", "GetFunctionBytecode", "getfunctionByteCode"}},
     {Uranium::getfunctionfromthread, {"getfunctionfromthread", "get_function_from_thread", "GetFunctionFromThread"}},
-    {Uranium::gettenv, {"gettenv", "get_thread_enviorment", "get_t_env", "getthreadenviorment", "GeTThreadEnviorment"}}
+    {Uranium::gettenv, {"gettenv", "get_thread_enviorment", "get_t_env", "getthreadenviorment", "GeTThreadEnviorment"}},
+    {Uranium::crash, {"crash", "potassium", "Sirhurt", "Swift", "Velocity"}},
+    {Uranium::cloneref, {"cloneref", "clone_ref", "clonerefrence", "clone_refrence", "cloneRef", "CloneRef", "CloneRefrence"}}
 };
     for (const function_table_struct& entry: function_table)
     {

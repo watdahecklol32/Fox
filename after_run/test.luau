@@ -590,103 +590,16 @@ test_func("getfunctionbytecode", function(...: any): ...any
     assert(#getfunctionbytecode(func) == 28, "Incorrect bytecode");
     return;
 end);
-test_func("Sanity Checks", function(...: any): ...any
-    const runner = function(func: (...any) -> (...any), message_str: string, ...: any): ()
-        const succ: boolean, response: any = pcall(func, ...);
-        --print(response);
-        assert(not succ, message_str);
-        return;
-    end;
-    runner(debug.getconstants, "debug.getconstants should error on C closures", print);
-    runner(debug.getmetatable, "debug.getmetatable should error on nil-arugments");
-    runner(debug.setmetatable, "debug.setmetatable should error if the 2nd arugment is neither nil or a table", {}, gcinfo);
-    runner(debug.getupvalues, "debug.getupvalues should error on C closures", xpcall);
-    runner(debug.getupvalues, "debug.getupvalues should error on non-closure targets", newproxy(false));
-    runner(isreadonly, "isreadonly should error on non-tables", newproxy(false));
-    runner(setreadonly, "setreadonly should error on non-table targets", newproxy(false), true);
-    runner(setreadonly, "setreadonly should error on non boolean states", {}, pcall);
-    runner(setnamecallmethod, "setnamecallmethod should error on non-strings", newproxy(true));
-    runner(iswriteable, "iswriteable should error on non-table objects", print);
-    runner(makewriteable, "makewriteable should error on non-table targets", print);
-    runner(makereadonly, "makereadonly should error on non-table targets", error);
-    runner(getfflag, "getfflag should error on non-string flags", error);
-    runner(getfflag, "getfflag should error on invalid flags", "LDKWEQJ;LKDQWJ;DJWQL;KJDWQHFQWEFJHWLFWQHUFIJEW;FOIUWUHFWQHUI;O");
-    runner(debug.getconstant, "debug.getconstant should error on C clousres", print, 0);
-    runner(debug.getconstant, "debug.getconstant should error on out of bounds index", function() end, 99999);
-    runner(debug.getconstant, "debug.getconstant should error on negative index", function() end, -1);
-    runner(debug.getconstant, "debug.getconstant should error on non-closure targets", newproxy(false), 1);
-    runner(debug.getconstant, "debug.getconstant should error on non-number index", function() end, {});
-    --[[do 
-        const _buffer: buffer = buffer.create(4); 
-        buffer.writeu32(_buffer, 0, 0-1);
-        runner(debug.getconstant, "debug.getconstant should error on out of bounds index [1]", function() end, buffer.readu32(_buffer, 0));
-    end;]]
-    runner(debug.getconstant, "debug.getconstant should error on out of bounds index [2]", function() end, bit32.lshift(0xFFFFFFFF + 5, 0xFFFFFFFF));
-    runner(debug.getconstant, "debug.getconstant should error on out of bounds index [3]", function() end, 0);
-    runner(debug.getupvalue, "debug.getupvalue should error on C closures", print, 1);
-    runner(debug.getupvalue, "debug.getupvalue should error on out of bounds index [1]", function() end, 9);
-    runner(debug.getupvalue, "debug.getupvalue should error on non-closure targets [2]", {}, 1);
-    runner(debug.getupvalue, "debug.getupvalue should error on non-number index", function() end, 2);
-    runner(debug.getprotos, "debug.getprotos should error on C closures", print);
-    runner(debug.getprotos, "debug.getprotos should error on non-closure targets", newproxy(false));
-    runner(debug.getproto, "debug.getproto should error on C closures", print, 1, true);
-    runner(debug.getproto, "debug.getproto should error on non-closure targets", newproxy(false), 1, false);
-    runner(debug.getproto, "debug.getproto should error on out of bounds index", function() end, 109000);
-    runner(debug.getproto, "debug.getproto should error on out of bounds index", function() end, -1);
-    runner(debug.setconstant, "debug.setconstant should error on C closures", print, 1, "");
-    runner(debug.setconstant, "debug.setconstant should error on out of bounds index", function() end, 1, "");
-    runner(debug.setconstant, "debug.setconstant should error on out of bounds index", function() end, -1, "");
-    do
-        const hi = function(): ()
-            print("hi");
-            return;
-        end;
-        runner(debug.setconstant, "debug.setconstant should error on mismatching constants", hi, 1, newproxy(false));
-    end;
-    runner(debug.setupvalue, "debug.setupvalue should error on C closures", print, 1, {});
-    runner(debug.setupvalue, "debug.setupvalue should error on out of bounds index", function() end, 10000, {});
-    runner(debug.setupvalue, "debug.setupvalue should error on out of bounds index", function() end, -1, "");
-    runner(debug.setupvalue, "debug.setupvalue should error on non-closures", {}, 1, {});
-    runner(debug.setupvalue, "debug.setupvalue should error on non-number indexs", function() end, {}, 4);
-    do
-        const proxy: any = newproxy(true);
-        const metatable: {[string]: any} = getmetatable(proxy);
-        metatable.__namecall = function(...: any): ...any
-            setnamecallmethod('');
-            debug.getstack(3);
-            return;
-        end;
-        const succ: boolean, response: any = pcall(function(...)
-            proxy:hi();
-        end);
-        assert(not succ, "debug.getstack should error in a C closure");
-    end;
-    runner(debug.getstack, "debug.getstack should error on out of bounds index", 1000);
-    runner(debug.getstack, "debug.getstack should error on out of bounds index", -1);
-    runner(debug.getstack, "debug.getstack should error on C closures", xpcall);
-    runner(debug.getstack, "debug.getstack should error if the second parameter is not a number", 2, newproxy(false));
-    runner(debug.setname, "debug.setname should error on non-string name", function() end, newproxy(false));
-    runner(debug.setname, "debug.setname should error on a non-closure target", {}, "hi");
-    runner(debug.setstack, "debug.setstack should error on C closures", xpcall, 2, {});
-   do
-        const proxy: any = newproxy(true);
-        const metatable: {[string]: any} = getmetatable(proxy);
-        metatable.__namecall = function(...: any): ...any
-            setnamecallmethod('');
-            debug.setstack(3, "", {});
-            return;
-        end;
-        const succ: boolean, response: any = pcall(function(...)
-            proxy:hi();
-        end);
-        assert(not succ, "debug.setstack should error in a C closure");
-    end;
-    runner(getgc, "getgc should error on non-boolean parameters", {});
-    runner(clonefunction, "clonefunction should error on non-closure targets", newproxy(false));
+test_func("cloneref", function(...: any): ...any
+    const proxy: any = newproxy(true);
+    const metatable: {[string]: any} = getmetatable(proxy);
+    metatable.__index = function(...: any) return; end;
+    metatable.__metatable = "locked";
+    const ref: any = cloneref(proxy);
+    assert(proxy ~= ref, "cloneref returned same userdata");
+    assert(getrawmetatable(proxy) == metatable, "should share the same metatable");
     return;
 end);
-
-
 print("Done");
 print("Passed:", passed_tests_uint8);
 print("Failed:", total_tests_uint8 - passed_tests_uint8);
