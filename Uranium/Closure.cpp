@@ -111,27 +111,27 @@ int clonefunction(lua_State* lua_state_ptr)
     lua_clonefunction(lua_state_ptr, 1);
     return 1;
 }
-int newlclosure(lua_State* L)
+int newlclosure(lua_State* lua_state_ptr)
 {
-    luaL_checktype(L, 1, LUA_TFUNCTION);
-    lua_newtable(L);
-    lua_getfenv(L, 1); // TODO: this is bad!!! create a new enviorment instend!
-    lua_setmetatable(L, -2);
-    lua_pushvalue(L, 1);
-    lua_setfield(L, -2, "yeswhatever");
-    const int enviorment_index = lua_gettop(L);
+    luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
+    lua_newtable(lua_state_ptr);
+    lua_getfenv(lua_state_ptr, 1); // TODO: this is bad!!! create a new enviorment instend!
+    lua_setmetatable(lua_state_ptr, -2);
+    lua_pushvalue(lua_state_ptr, 1);
+    lua_setfield(lua_state_ptr, -2, "yeswhatever");
+    const int enviorment_index = lua_gettop(lua_state_ptr);
     const char* source_str = "return yeswhatever(...)";
     size_t bc_size = 0;
     char* bytecode_str = luau_compile(source_str, strlen(source_str), nullptr, &bc_size);
-    if (!bytecode_str || luau_load(L, "wrapper", bytecode_str, bc_size, enviorment_index) != LUA_OK)
+    if (!bytecode_str || luau_load(lua_state_ptr, "wrapper", bytecode_str, bc_size, enviorment_index) != LUA_OK) // TODO: by source would be neat
     {
         free(bytecode_str);
-        lua_error(L);
+        lua_error(lua_state_ptr);
         return 0;
     }
     free(bytecode_str);
-    lua_remove(L, enviorment_index);
-    lua_ref(L, -1);
+    lua_remove(lua_state_ptr, enviorment_index);
+    lua_ref(lua_state_ptr, -1);
     return 1;
 }
 int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
@@ -142,6 +142,7 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
     // NC->L
     // NC->NC
     // buggy, still...
+    // TODO: fix NC->L crashing after 3 hooks
     luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
     luaL_checktype(lua_state_ptr, 2, LUA_TFUNCTION);
     Closure* target_function = clvalue(luaA_toobject(lua_state_ptr, 1));
@@ -196,7 +197,6 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
             luaC_objbarrier(lua_state_ptr, target_function, target_proto);
             target_function->env = wrapper->env;
             luaC_objbarrier(lua_state_ptr, target_function, target_function->env);
-            target_function->nupvalues = 0;
             target_function->stacksize = wrapper->stacksize;
             target_function->preload = wrapper->preload;
             //wrapper->l.p->debugname = target_function->debugname;
@@ -209,14 +209,12 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
         }
         else
         {
-            // if the hook doesnt have more upvalues than the target it's safe to directly copy
             for (int i = 0; i < hook_num_upvalues; i++)
             {
                 setobj2n(lua_state_ptr, &target_function->l.uprefs[i], &replacement_function->l.uprefs[i]);
             }
             const Proto* target_proto = target_function->l.p;
             Proto* replacement_proto = replacement_function->l.p;
-            target_function->nupvalues = hook_num_upvalues;
             target_function->l.p = replacement_proto;
             luaC_objbarrier(lua_state_ptr, target_function, replacement_proto);
             target_function->env = replacement_function->env;
@@ -245,7 +243,6 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
             new_cclosure_map[target_function] = replacement_function;
             target_function->c.f = newcclosure_handler_func;
             target_function->c.cont = newcclosure_cont;
-            target_function->nupvalues = 0;
             target_function->c.debugname = old_debug_name_str;
             return 1;
         }
@@ -253,13 +250,11 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
         {
             for (int i = 0; i < hook_num_upvalues; i++)
             {
-                setobj2n(lua_state_ptr, &target_function->l.uprefs[i], &replacement_function->l.uprefs[i]);
+                setobj2n(lua_state_ptr, &target_function->c.upvals[i], &replacement_function->c.upvals[i]);
             }
             target_function->c.f = replacement_function->c.f;
             target_function->c.cont = replacement_function->c.cont;
-            // target_function->c.debugname = replacement_function->c.debugname;
             target_function->c.debugname = old_debug_name_str;
-            target_function->nupvalues = hook_num_upvalues;
             const auto repl_map_it = new_cclosure_map.find(replacement_function);
             if (repl_map_it != new_cclosure_map.end())
             {
