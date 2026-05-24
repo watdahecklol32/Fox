@@ -22,6 +22,7 @@
 #include "../Uranium/Miscellaneous.hpp"
 #include "../Uranium/Closure.hpp"
 #include "../Uranium/Console.hpp"
+#include "../Uranium/Thread.hpp"
 
 
 static void lua_close_checked(lua_State* L)
@@ -559,7 +560,11 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::ismetamethodhooked, {"ismetamethodhooked", "is_metamethod_hooked", "is_meta_method_hooked", "IsMetaMethodHooked", "ismetafishhooked", "is_meta_fish_hooked", "isMetaFishHooked", "ismetafieldhooked", "is_meta_field_hooked", "is_metafield_hooked", "IsMetaFieldHooked"}},
     {Uranium::restoremetamethod, {"restoremetamethod", "restore_metamethod", "restoreMetaMethod", "RestoreMetaMethod", "restoremetafield", "restore_metafield", "restoreMetaField", "RestoreMetaField", "restoremetafish", "restoreMetaFish", "restore_meta_fish", "RestoreMetaFish"}},
     {Uranium::rconsolecreate, {"consolecreate","rconsolecreate"}},
-    {Uranium::setclipboard, {"setclipboard"}}
+    {Uranium::setclipboard, {"setclipboard"}},
+    {Uranium::setunhookable, {"setunhookable", "set_un_hookable", "SetUnHookAble", "setUnHookAble", "markunhookable", "mark_un_hookable", "mark_un_hook_able"}},
+    {Uranium::gethookedfunctions, {"gethookedfunctions", "get_hooked_functions", "getHookedFunctions", "GetHookedFunctions"}},
+    {Uranium::getfunctionfromthread, {"getfunctionfromthread", "get_function_from_thread", "GetFunctionFromThread"}},
+    {Uranium::gettenv, {"gettenv", "get_thread_enviorment", "get_t_env", "getthreadenviorment", "GeTThreadEnviorment"}}
 };
     for (const function_table_struct& entry: function_table)
     {

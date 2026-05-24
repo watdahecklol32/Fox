@@ -14,7 +14,7 @@ static bool getgc_visitor(void* context, lua_Page* gc_page, GCObject* gc_object)
 	getgc_context* curr_context = static_cast<getgc_context*>(context);
 	lua_State* lua_state_ptr = curr_context->lua_state_ptr;
 	const uint8_t type = gc_object->gch.tt;
-	if (type != LUA_TTABLE && type != LUA_TFUNCTION && type != LUA_TUSERDATA && type != LUA_TTHREAD && type != LUA_TBUFFER && type != LUA_TSTRING)
+	if (type != LUA_TTABLE && type != LUA_TFUNCTION && type != LUA_TUSERDATA && type != LUA_TTHREAD && type != LUA_TBUFFER)
 	{
 		return false;
 	}

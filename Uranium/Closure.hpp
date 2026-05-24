@@ -13,4 +13,6 @@ namespace Uranium
     int hookmetamethod(lua_State* lua_state_ptr);
     int ismetamethodhooked(lua_State* lua_state_ptr);
     int restoremetamethod(lua_State* lua_state_ptr);
+    int setunhookable(lua_State* lua_state_ptr);
+    int gethookedfunctions(lua_State* lua_state_ptr);
 }

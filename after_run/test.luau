@@ -1,6 +1,7 @@
 --!nocheck
 --!nolint
 --!optimize 0
+local task = require("@lute/task");
 local passed_tests_uint8: number = 0;
 local total_tests_uint8: number = 0;
 const test_func = function(test_name_str: string, func: (...any) -> (...any)): ()
@@ -15,7 +16,6 @@ const test_func = function(test_name_str: string, func: (...any) -> (...any)): (
     return;
 end;
 test_func("debug.getmetatable", function(...: any): ...any
-    assert(debug.getmetatable, "debug.getmetatable was not pushed to the debug lib");
     const metatable: {[string]: any} = {
         __index = test_func;
         __metatable = false;
@@ -26,7 +26,6 @@ test_func("debug.getmetatable", function(...: any): ...any
     return;
 end);
 test_func("debug.setmetatable", function(...: any): ...any
-    assert(debug.setmetatable, "debug.setmetatable was not pushed to debug lib");
     const metatable: {[string]: any} = {
         __index = function(...) return; end;
         __metatable = false;
@@ -37,7 +36,6 @@ test_func("debug.setmetatable", function(...: any): ...any
     return;
 end);
 test_func("debug.getconstants", function(...: any): ()
-    assert(debug.getconstants, "debug.getconstants was not pushed to the debug lib");
     const func = function(): never
         game:GetService("Workspace")
         game:GetService("Players").LocalPlayer:Kick();
@@ -50,7 +48,6 @@ test_func("debug.getconstants", function(...: any): ()
     return;
 end);
 test_func("debug.getupvalues", function(...: any): ...any
-    assert(debug.getupvalues, "debug.getupvalues was not pushed to the debug lib");
     const up_value: { } = {};
     const hi_how_is_ur_day = function()
         const x = up_value;
@@ -63,7 +60,6 @@ test_func("debug.getupvalues", function(...: any): ...any
     return;
 end);
 test_func("debug.getprotos", function(...: any): ...any
-    assert(debug.getprotos, "debug.getprotos was not pushed to the debug lib");
     local function test_ok(): ()
         local function meow(): number
             return 1;
@@ -77,7 +73,6 @@ test_func("debug.getprotos", function(...: any): ...any
     return;
 end);
 test_func("debug.getproto", function(...: any): ...any
-    assert(debug.getproto, "debug.getproto was not pushed to the debug lib");
     local function test_ok(): ()
         local function meow(): number
             return 1;
@@ -91,7 +86,6 @@ test_func("debug.getproto", function(...: any): ...any
     return;
 end);
 test_func("debug.getconstant", function(...: any): ...any
-    assert(debug.getconstant, "debug.getconstant was not pushed to the debug lib");
     const func = function(...: any): ()
         print("");
         local a = "gay";
@@ -103,7 +97,6 @@ test_func("debug.getconstant", function(...: any): ...any
     return;
 end);
 test_func("debug.getupvalue", function(...: any): ()
-    assert(debug.getupvalue, "debug.getupvalue was not pushed to the debug lib");
     const upvalue: { } = {};
     const func = function(): ()
         print(upvalue);
@@ -113,21 +106,18 @@ test_func("debug.getupvalue", function(...: any): ()
     return;
 end);
 test_func("debug.getstack", function(...: any): ...any
-   	assert(debug.getstack, "debug.getstack was not pushed to the debug lib");
     local a: string = "a" .. "b";
 	assert(debug.getstack(1, 1) == "ab", "The first item in the stack should be 'ab'");
 	assert(debug.getstack(1)[1] == "ab", "The first item in the stack table should be 'ab'");    
     return;
 end);
 test_func("debug.setstack", function(...: any): ...any
-    assert(debug.setstack, "debug.setstack was not pushed to the debug lib");
     local a: string = "a".."b";
     debug.setstack(1, 1, "gay");
     assert(debug.getstack(1, 1) == "gay", "debug.setstack does not change items in the stack");
     return;
 end);
 test_func("debug.setconstant", function(...: any): ...any
-    assert(debug.setconstant, "debug.setconstant was not pushed to the debub lib");
     const func = function(...: any): ()
         print("gay", 1, 2, 3);
         return;
@@ -137,7 +127,6 @@ test_func("debug.setconstant", function(...: any): ...any
     return;
 end);
 test_func("debug.setupvalue", function(...: any): ...any
-    assert(debug.setupvalue, "debug.setupvalue was not pushed to the debug.lib");
     const old_upvalue: { } = {};
     const hi = function(): ()
         table.foreach(old_upvalue, print);
@@ -149,7 +138,6 @@ test_func("debug.setupvalue", function(...: any): ...any
     return;
 end);
 test_func("debug.setname", function(...: any): ...any
-    assert(debug.setname, "debug.setname was not pushed to the debug lib");
     local function old_debug_name(): ()
         return;
     end;
@@ -158,15 +146,13 @@ test_func("debug.setname", function(...: any): ...any
     return;
 end);
 test_func("isreadonly", function(...: any): ...any
-    assert(isreadonly, "isreadonly was not pushed");
     const thing: {} = {};
     table.freeze(thing);
     assert(isreadonly(thing), "wow you failed at the most basic thing, congrats");
     return;
 end);
 test_func("setreadonly", function(...: any): ...any
-    assert(setreadonly, "setreadonly was not pushed");
-    const thing = {};
+    const thing: {} = {};
     setreadonly(thing, true);
     assert(isreadonly(thing), "it didnt make the fuckin thing readonly");
     setreadonly(thing, false);
@@ -174,7 +160,6 @@ test_func("setreadonly", function(...: any): ...any
     return;
 end);
 test_func("getnamecallmethod", function(...): ...any
-    assert(getnamecallmethod, "getnamecallmethod was not pushed");
     const proxy: any = newproxy(true);
     const expected_method_str: string = "hi";
     local method_str: string;
@@ -187,7 +172,6 @@ test_func("getnamecallmethod", function(...): ...any
     return;
 end);
 test_func("setnamecallmethod", function(...: any): ...any
-    assert(setnamecallmethod, "setnamecallmethod was not pushed");
     const proxy: any = newproxy(true);
     const expected_new_method_str: string = "bye";
     local method_str: string;
@@ -201,13 +185,11 @@ test_func("setnamecallmethod", function(...: any): ...any
     return;
 end)
 test_func("iswriteable", function(...): ...any
-    assert(iswriteable, "iswriteable was not pushed");
     assert(iswriteable({}), "should be true");
     assert(not iswriteable(table.freeze({})), "should be false");
     return;
 end);
 test_func("makewriteable", function(...): ...any
-    assert(makewriteable, "makewriteable did not get pushed");
     const tbl: { } = {};
     setreadonly(tbl, true);
     makewriteable(tbl);
@@ -215,19 +197,16 @@ test_func("makewriteable", function(...): ...any
     return;
 end);
 test_func("makereadonly", function(...: any): ...any
-    assert(makereadonly, "makereadonly did not get pushed");
     const tbl: { } = {};
     makereadonly(tbl);
     assert(isreadonly(tbl), "makereadonly did not set readonly");
     return;
 end);
 test_func("getfflag", function(...: any): ...any
-    assert(getfflag, "getfflag was not pushed");
     assert(getfflag("LuauStacklessPcall"), "getfflag did not return true for an enabled FFlag");
     return;
 end);
 test_func("getgc", function(...: any): ...any
-    assert(getgc, "getgc was not pushed");
     const _table: {hi: boolean} = {["hi"] = true};
     const _buffer: buffer = buffer.create(0);
     local function UwU(): ()
@@ -243,26 +222,22 @@ test_func("getgc", function(...: any): ...any
     return;
 end);
 test_func("identifyexecutor", function(...: any): ...any
-    assert(identifyexecutor, "identifyexecutor was not pushed");
     const str: string, ver: string = identifyexecutor();
     assert(type(str) == "string" and str == "mreower", "wtf 1");
     assert(type(ver) == "string" and ver == "0.0.0", "wtf 2");
     return;
 end);
 test_func("islclosure", function(...: any): ...any
-    assert(islclosure, "was not pushed");
     assert(not islclosure(print), "should be false");
     assert(islclosure(function() end), "should be true");
     return;
 end);
 test_func("iscclosure", function(...: any): ...any
-    assert(iscclosure, "iscclosure was not pushed");
     assert(iscclosure(print), "should be true");
     assert(not iscclosure(function() end), "should be false");
     return;
 end);
 test_func("clonefunction", function(...: any): ...any
-    assert(clonefunction, "clonefunction was not pushed");
     const h = function(): boolean
         return true;
     end;
@@ -276,7 +251,6 @@ test_func("clonefunction", function(...: any): ...any
     return;
 end);
 test_func("newcclosure", function(...: any): ...any
-    assert(newcclosure, "newcclosure was not pushed");
     const a = function(): ()
         return true;
     end;
@@ -343,7 +317,6 @@ end);
     return;
 end);]]
 test_func("newlclosure", function(...: any): ...any
-    assert(newlclosure, "newlclosure didnt get pushed");
     local upvalue_test: boolean = false;
     const wrapped: (...any) -> boolean = newlclosure(function(...: any): boolean
         upvalue_test = true;
@@ -355,7 +328,6 @@ test_func("newlclosure", function(...: any): ...any
     return;
 end);
 test_func("hookfunction C-L hook", function(...: any): ...any
-    assert(hookfunction, "hookfunction was not pushed");
     local called: boolean = false;
     const old_info: {[number]: number} = {debug.info(rawget, "slnaf")};
     local hook: (...any) -> (...any); hook = hookfunction(rawget, function(...: any): ...any
@@ -373,7 +345,6 @@ test_func("hookfunction C-L hook", function(...: any): ...any
     return;
 end);
 test_func("hookfunction C->C hook", function(...): ...any -- shouldnt differ that much
-    assert(hookfunction, "hookfunction was not pushed");
     local called: boolean = false;
     const old_info: {[number]: number} = {debug.info(rawlen, "slnaf")};
     const old_func_ptr: (...any) -> (...any) = rawlen;
@@ -390,7 +361,6 @@ test_func("hookfunction C->C hook", function(...): ...any -- shouldnt differ tha
     return;
 end);
 test_func("hookfunction L-L", function(...: any): ...any
-    assert(hookfunction, "hookfunction was not pushed");
     const hi = function(): boolean
         return true;
     end;
@@ -444,7 +414,6 @@ test_func("restorefunction", function(...: any): ...any
     return;
 end);
 test_func("hookmetamethod", function(...: any): ...any
-    assert(hookmetamethod, "hookmetamethod was not pushed");
     const target_metatable: setmetatable<T, MT> = setmetatable({}, {
         __index = function(...)
             return true;
@@ -488,7 +457,6 @@ test_func("hookmetamethod", function(...: any): ...any
     return;
 end);
 test_func("ismetamethodhooked", function(...: any): ...any
-    assert(ismetamethodhooked, "ismetamethodhooked was not pushed");
     do
         const metatable: setmetatable<T, MT> = setmetatable({}, {__index = function() end, __metatable = "locked"});
         hookmetamethod(metatable, "__index", function() end);
@@ -497,13 +465,122 @@ test_func("ismetamethodhooked", function(...: any): ...any
     return;
 end);
 test_func("restoremetamethod", function(...: any): ...any
-    assert(restoremetamethod, "restoremetamethod was not pushed");
     do
         const metatable: setmetatable<T, MT> = setmetatable({}, {__index = function() end, __metatable = "locked"});
         hookmetamethod(metatable, "__index", function() end);
         restoremetamethod(metatable, "__index");
         assert(not ismetamethodhooked(metatable, "__index"), "did not restore metamethod");
     end;
+    return;
+end);
+test_func("hookfunction L-L sanity checks", function(...: any): ...any
+    const func = function(): never
+        for _: never, _: never in true do end;
+        return;
+    end;
+    local hook_called: boolean = false;
+    do
+        local hook: (...any) -> (...any);
+        const replacement_func = function(...: any): never
+            hook_called = true;
+            return hook(...);
+        end;
+        hook = hookfunction(func, replacement_func);
+    end;
+    local passed: boolean = false;
+    xpcall(func, function(...)
+        for i: number = 0, 100 do
+            if (not debug.info(i, "f")) then
+                break;
+            end;
+            if (debug.info(i, "f") == replacement_func) then
+                return;
+            end;
+        end;
+        passed = true;
+        return;
+    end);
+    assert(hook_called, "hook never got called");
+    assert(passed, "hook leaked in callstack");
+    do
+        const func = function(...)
+            return;
+        end;
+        const old_line: number = debug.info(func, "l");
+        setfenv(func, {});
+        hookfunction(func, function(...: any): ()
+            return;
+        end);
+        const new_line: number = debug.info(func, "l");
+        if (getfenv(func) ~= getfenv()) then
+            print("enviorment changed - nothing i can do about it");
+        end;
+        --print(new_line, old_line);
+        assert(new_line == old_line, "line changed skull");
+    end;
+    return;
+end);
+test_func("hookfunction C->L sanity checks", function(...: any): ...any
+    local hook: (...any) -> (...any);
+    local called: boolean = false;
+    const replacement_func = function(...: any): never
+        called = true;
+        return hook(...);
+    end;
+    hook = hookfunction(rawequal, replacement_func);
+    do
+        local passed: boolean = false;
+        xpcall(rawequal, function(...: any): ()
+            print("hmm.. i wonder if my error message changed", ...);
+            for i: number = 0, 10 do
+                if (not debug.info(i, "f")) then
+                    break;
+                end;
+                if (debug.info(i, "f") == replacement_func) then
+                    return;
+                end;
+            end;
+            passed = true;
+            return;
+        end);
+        assert(called, "lol");
+        assert(passed, "leaked the hook in callstack");
+    end;
+    return;
+end);
+test_func("hookfunction same hook-target test", function(...: any): ...any
+   local h = function() end;
+   hookfunction(h, h);
+   assert(not isfunctionhooked(h), "should be false");
+   return;
+end);
+test_func("setunhookable", function(...: any): ...any
+    const h = function() return true; end;
+    setunhookable(h);
+    assert(not pcall(hookfunction, h, function() end), "should've not hooked an 'unhookable'");
+    assert(not isfunctionhooked(h), "should've not hooked the function");
+    return;
+end);
+test_func("gethookedfunctions", function(...: any): ...any
+    assert(#gethookedfunctions() == 10, "did not return 10"); 
+    return;
+end);
+test_func("gettenv", function(...: any): ...any
+    const func = function(): () return; end;
+    setfenv(func, {hi = true});
+    const thread: thread = task.spawn(func);
+    assert(gettenv(thread).hi, "did not return enviorment of a task thread");
+    assert(not gettenv(thread).hookfunction, "should be nil");
+    const thread: thread = coroutine.create(func);
+    assert(gettenv(thread).hi, "didn't return the enviorment for a coroutine thread");
+    return;
+end);
+test_func("getfunctionfromthread", function(...: any): ...any
+    const func = function(): () return; end;
+    const thread: thread = task.spawn(func);
+    assert(getfunctionfromthread(thread) == func, "did not return the correct function");
+    const thread: thread = coroutine.create(func);
+    assert(getfunctionfromthread(thread) == func, "did not return the correct function");
     return;
 end);
 test_func("Sanity Checks", function(...: any): ...any
@@ -601,87 +678,7 @@ test_func("Sanity Checks", function(...: any): ...any
     runner(clonefunction, "clonefunction should error on non-closure targets", newproxy(false));
     return;
 end);
-test_func("hookfunction L-L sanity checks", function(...: any): ...any
-    const func = function(): never
-        for _: never, _: never in true do end;
-        return;
-    end;
-    local hook_called: boolean = false;
-    do
-        local hook: (...any) -> (...any);
-        const replacement_func = function(...: any): never
-            hook_called = true;
-            return hook(...);
-        end;
-        hook = hookfunction(func, replacement_func);
-    end;
-    local passed: boolean = false;
-    xpcall(func, function(...)
-        for i: number = 0, 100 do
-            if (not debug.info(i, "f")) then
-                break;
-            end;
-            if (debug.info(i, "f") == replacement_func) then
-                return;
-            end;
-        end;
-        passed = true;
-        return;
-    end);
-    assert(hook_called, "hook never got called");
-    assert(passed, "hook leaked in callstack");
-    do
-        const func = function(...)
-            return;
-        end;
-        const old_line: number = debug.info(func, "l");
-        setfenv(func, {});
-        hookfunction(func, function(...: any): ()
-            return;
-        end);
-        const new_line: number = debug.info(func, "l");
-        if (getfenv(func) ~= getfenv()) then
-            print("enviorment changed - nothing i can do about it");
-        end;
-        --print(new_line, old_line);
-        assert(new_line == old_line, "line changed skull");
-    end;
-    return;
-end);
-test_func("hookfunction C->L sanity checks", function(...: any): ...any
-    local hook: (...any) -> (...any);
-    local called: boolean = false;
-    const replacement_func = function(...: any): never
-        called = true;
-        return hook(...);
-    end;
-    hook = hookfunction(rawequal, replacement_func);
-    do
-        local passed: boolean = false;
-        xpcall(rawequal, function(...: any): ()
-            print("hmm.. i wonder if my error message changed", ...);
-            for i: number = 0, 10 do
-                if (not debug.info(i, "f")) then
-                    break;
-                end;
-                if (debug.info(i, "f") == replacement_func) then
-                    return;
-                end;
-            end;
-            passed = true;
-            return;
-        end);
-        assert(called, "lol");
-        assert(passed, "leaked the hook in callstack");
-    end;
-    return;
-end);
-test_func("hookfunction same hook-target test", function(...: any): ...any
-   local h = function() end;
-   hookfunction(h, h);
-   assert(not isfunctionhooked(h), "should be false");
-   return;
-end);
+
 
 print("Done");
 print("Passed:", passed_tests_uint8);

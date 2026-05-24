@@ -15,6 +15,7 @@
 #include "lstate.h"
 std::map<Closure*, Closure*> new_cclosure_map;
 std::map<Closure*, Closure*> restore_map;
+std::map<const Closure*, bool> unhookables;
 static int newcclosure_cont(lua_State* lua_state_ptr, const int status)
 {
     if (status != 0)
@@ -40,6 +41,7 @@ static int newcclosure_handler_func(lua_State* lua_state_ptr)
     lua_state_ptr->nCcalls += 1;
     const int result = lua_pcall(lua_state_ptr, num_args_passed, LUA_MULTRET, 0);
     lua_state_ptr->nCcalls -= 1;
+    // w stackless pcall
     if (result != 0)
     {
         if (lua_isstring(lua_state_ptr, -1))
@@ -143,6 +145,11 @@ int hookfunction(lua_State* lua_state_ptr) // pain n sufferin'
     luaL_checktype(lua_state_ptr, 2, LUA_TFUNCTION);
     Closure* target_function = clvalue(luaA_toobject(lua_state_ptr, 1));
     Closure* replacement_function = clvalue(luaA_toobject(lua_state_ptr, 2));
+    if (unhookables.find(target_function) != unhookables.end())
+    {
+        luaL_argerror(lua_state_ptr, 1, "function is marked as a unhookable");
+        return 0;
+    }
     if (target_function == replacement_function) // since apparently hooking functions with them selfs are SOOO useful??
     {
         // std :: cout << "same func hook detected" << std :: endl;
@@ -422,5 +429,30 @@ int restoremetamethod(lua_State* lua_state_ptr)
     lua_pushvalue(lua_state_ptr, -2);
     lua_call(lua_state_ptr, 1, 0);
     return 0;
+}
+int setunhookable(lua_State* lua_state_ptr)
+{
+    luaL_checktype(lua_state_ptr, 1, LUA_TFUNCTION);
+    const Closure* function_ptr = clvalue(luaA_toobject(lua_state_ptr, 1));
+    if (unhookables.find(function_ptr) != unhookables.end())
+    {
+        luaL_argerrorL(lua_state_ptr, 1, "function is already marked as unhookable");
+        return 0;
+    }
+    unhookables[function_ptr] = true;
+    return 0;
+}
+int gethookedfunctions(lua_State* lua_state_ptr)
+{
+    lua_newtable(lua_state_ptr);
+    int table_index = 1;
+    for (const auto hi: restore_map)
+    {
+        luaC_threadbarrier(lua_state_ptr);
+        setclvalue(lua_state_ptr, lua_state_ptr->top, hi.first);
+        lua_state_ptr->top += 1;
+        lua_rawseti(lua_state_ptr, -2, table_index++);
+    }
+    return 1;
 }
 }

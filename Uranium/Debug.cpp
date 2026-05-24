@@ -360,9 +360,9 @@ int debug_getstack(lua_State* lua_state_ptr)
         luaL_argerrorL(lua_state_ptr, 1, "Luau closure expected");
         return 0;
     }
-    const CallInfo* current_instruction = lua_state_ptr->ci - stack_level;
-    const Proto* proto = clvalue(current_instruction->func)->l.p;
-    const int program_counter = pcRel(current_instruction->savedpc, proto);
+    const CallInfo* current_ci = lua_state_ptr->ci - stack_level;
+    const Proto* proto = clvalue(current_ci->func)->l.p;
+    const int program_counter = pcRel(current_ci->savedpc, proto);
     if (lua_isnoneornil(lua_state_ptr, 2))
     {
         lua_newtable(lua_state_ptr);
@@ -374,7 +374,7 @@ int debug_getstack(lua_State* lua_state_ptr)
                 break;
             }
             luaC_threadbarrier(lua_state_ptr);
-            luaA_pushobject(lua_state_ptr, current_instruction->base + result->reg);
+            luaA_pushobject(lua_state_ptr, current_ci->base + result->reg);
             lua_rawseti(lua_state_ptr, -2, i);
         }
         return 1;
@@ -394,7 +394,7 @@ int debug_getstack(lua_State* lua_state_ptr)
         return 0;
     }
     luaC_threadbarrier(lua_state_ptr);
-    luaA_pushobject(lua_state_ptr, current_instruction->base + result->reg);
+    luaA_pushobject(lua_state_ptr, current_ci->base + result->reg);
     return 1;
 }
 int debug_setstack(lua_State* lua_state_ptr)
@@ -421,9 +421,9 @@ int debug_setstack(lua_State* lua_state_ptr)
         luaL_argerrorL(lua_state_ptr, 1, "Luau closure expected");
         return 0;
     }
-    const CallInfo* current_instruction = lua_state_ptr->ci - stack_level;
-    const Proto* proto = clvalue(current_instruction->func)->l.p;
-    const int program_counter = pcRel(current_instruction->savedpc, proto);
+    const CallInfo* current_ci = lua_state_ptr->ci - stack_level;
+    const Proto* proto = clvalue(current_ci->func)->l.p;
+    const int program_counter = pcRel(current_ci->savedpc, proto);
     const int index = lua_tointeger(lua_state_ptr, 2);
     if (index <= 0)
     {
@@ -436,14 +436,14 @@ int debug_setstack(lua_State* lua_state_ptr)
         luaL_argerrorL(lua_state_ptr, 2, "index out of bounds");
         return 0;
     }
-    const lua_TValue* current_value = current_instruction->base + result->reg;
+    const lua_TValue* current_value = current_ci->base + result->reg;
     const lua_TValue* new_value = luaA_toobject(lua_state_ptr, 3);
     if (ttype(current_value) != ttype(new_value))
     {
         luaL_argerror(lua_state_ptr, 3, "type mismatch");
         return 0;
     }
-    setobj2s(lua_state_ptr, current_instruction->base + result->reg, new_value);
+    setobj2s(lua_state_ptr, current_ci->base + result->reg, new_value);
     return 0;
 }
 }
