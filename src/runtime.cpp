@@ -567,7 +567,11 @@ void setup_custom_enviorment(lua_State* lua_state_ptr)
     {Uranium::getfunctionfromthread, {"getfunctionfromthread", "get_function_from_thread", "GetFunctionFromThread"}},
     {Uranium::gettenv, {"gettenv", "get_thread_enviorment", "get_t_env", "getthreadenviorment", "GeTThreadEnviorment"}},
     {Uranium::crash, {"crash", "potassium", "Sirhurt", "Swift", "Velocity"}},
-    {Uranium::cloneref, {"cloneref", "clone_ref", "clonerefrence", "clone_refrence", "cloneRef", "CloneRef", "CloneRefrence"}}
+    {Uranium::cloneref, {"cloneref", "clone_ref", "clonerefrence", "clone_refrence", "cloneRef", "CloneRef", "CloneRefrence"}},
+    {Uranium::setsafeenv, {"setsafeenv", "set_safe_env", "SetSafeEnv", "setSafeEnv", "setuntouchable", "setUnTouchAble", "set_un_touch_able", "set_untouch_able", "SetUnTouchAble", "setuntouched", "set_un_touched", "setUnTouched", "SetUnTouched"}},
+    {Uranium::isuntouched, {"isuntouched", "isUnTouched", "is_untouched", "IsUnTouched", "isSafeEnv", "is_safe_env", "issafeenv", "isSafeEnv", "isuntouchable", "is_untouch_able", "IsUntouchAble"}},
+    {Uranium::setprotected, {"setprotected", "set_protected", "setProtected", "SetProtected"}},
+    {Uranium::isprotected, {"isprotected", "is_protected", "IsProtected", "isProtected"}}
 };
     for (const function_table_struct& entry: function_table)
     {
@@ -609,6 +613,8 @@ lua_State* setupState(Runtime& runtime, std::function<void(lua_State*)> doBefore
         doBeforeSandbox(L);
 
     luaL_sandbox(L);
+
+
 
     return L;
 }

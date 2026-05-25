@@ -4,10 +4,16 @@
 #include "lualib.h"
 #include <cstring>
 #include <iostream>
+#include <map>
 #include "lapi.h"
 #include "Types.hpp"
 #include "lmem.h"
 #include "lobject.h"
+std::map<const LuaTable*, bool> protected_map;
+bool is_table_protected(const LuaTable* table)
+{
+	return protected_map.find(table) != protected_map.end();
+}
 static bool getgc_visitor(void* context, lua_Page* gc_page, GCObject* gc_object)
 {
 	// somewhat ugly
@@ -45,18 +51,36 @@ namespace Uranium
 	{
 		luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
 		luaL_checktype(lua_state_ptr, 2, LUA_TBOOLEAN);
+		const LuaTable* target_table = hvalue(luaA_toobject(lua_state_ptr, 1));
+		if (is_table_protected(target_table))
+		{
+			luaL_argerror(lua_state_ptr, 1, "table is protected");
+			return 0;
+		}
 		lua_setreadonly(lua_state_ptr, 1, lua_toboolean(lua_state_ptr, 2));
 		return 0;
 	}
 	int makewriteable(lua_State* lua_state_ptr)
 	{
 		luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
+		const LuaTable* target_table = hvalue(luaA_toobject(lua_state_ptr, 1));
+		if (is_table_protected(target_table))
+		{	
+			luaL_argerror(lua_state_ptr, 1, "table is protected");
+			return 0;
+		}
 		lua_setreadonly(lua_state_ptr, 1, 0);
 		return 0;
 	}
 	int makereadonly(lua_State* lua_state_ptr)
 	{
 		luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
+		const LuaTable* target_table = hvalue(luaA_toobject(lua_state_ptr, 1));
+		if (is_table_protected(target_table))
+		{
+			luaL_argerror(lua_state_ptr, 1, "table is protected");
+			return 0;
+		}
 		lua_setreadonly(lua_state_ptr, 1, 1);
 		return 0;
 	}
@@ -133,6 +157,100 @@ namespace Uranium
 	int getreg(lua_State* lua_state_ptr)
 	{
 		lua_pushvalue(lua_state_ptr, LUA_REGISTRYINDEX);
+		return 1;
+	}
+	int setsafeenv(lua_State* lua_state_ptr)
+	{
+		// https://actualmasteroogway.github.io/synapse-x-documentation/reference/category/table.html?highlight=setunt#setuntouched
+		// OK, simple enough!
+		luaL_checkany(lua_state_ptr, 1);
+		luaL_checktype(lua_state_ptr, 2, LUA_TBOOLEAN);
+		const int type = lua_type(lua_state_ptr, 1);
+		const bool state = luaL_optboolean(lua_state_ptr, 2, false);
+		switch (type)
+		{
+			case LUA_TTABLE:
+			{
+				lua_setsafeenv(lua_state_ptr, 1, state);
+				break;
+			}
+			case LUA_TFUNCTION:
+			{
+				lua_getfenv(lua_state_ptr, 1);
+				lua_setsafeenv(lua_state_ptr, -1, state);
+				break;
+			}
+			case LUA_TTHREAD:
+			{
+				lua_getglobal(lua_state_ptr, "getfunctionfromthread");
+				lua_pushvalue(lua_state_ptr, 1);
+				lua_call(lua_state_ptr, 1, 1);
+				lua_getfenv(lua_state_ptr, -1);
+				lua_setsafeenv(lua_state_ptr, -1, state);
+				break;
+			}
+			default:
+			{
+				luaL_argerrorL(lua_state_ptr, 1, "Unsupported arugment");
+				break;
+			}
+		}
+		return 0;
+	}
+	int isuntouched(lua_State* lua_state_ptr)
+	{
+		luaL_checkany(lua_state_ptr, 1);
+		const int type = lua_type(lua_state_ptr, 1);
+		switch (type)
+		{
+			case LUA_TTABLE:
+			{
+				const LuaTable* env = hvalue(luaA_toobject(lua_state_ptr, 1));
+				lua_pushboolean(lua_state_ptr, env->safeenv);
+				break;
+			}
+			case LUA_TFUNCTION:
+			{
+				lua_getfenv(lua_state_ptr, 1);
+				const LuaTable* env = hvalue(luaA_toobject(lua_state_ptr, -1));
+				lua_pushboolean(lua_state_ptr, env->safeenv);
+				break;
+			}
+			case LUA_TTHREAD:
+			{
+				lua_getglobal(lua_state_ptr, "getfunctionfromthread");
+				lua_pushvalue(lua_state_ptr, 1);
+				lua_call(lua_state_ptr, 1, 1);
+				lua_getfenv(lua_state_ptr, -1);
+				const LuaTable* env = hvalue(luaA_toobject(lua_state_ptr, -1));
+				lua_pushboolean(lua_state_ptr, env->safeenv);
+				break;
+			}
+			default:
+			{
+				luaL_argerrorL(lua_state_ptr, 1, "Unsupported arugment");
+				break;
+			}
+		}
+		return 1;
+	}
+	int setprotected(lua_State* lua_state_ptr)
+	{
+		luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
+		const LuaTable* table = hvalue(luaA_toobject(lua_state_ptr, 1));
+		if (is_table_protected(table))
+		{
+			luaL_argerrorL(lua_state_ptr, 1, "table is already protected");
+			return 0;
+		}
+		protected_map[table] = true;
+		return 0;
+	}
+	int isprotected(lua_State* lua_state_ptr)
+	{
+		luaL_checktype(lua_state_ptr, 1, LUA_TTABLE);
+		const LuaTable* table = hvalue(luaA_toobject(lua_state_ptr, 1));
+		lua_pushboolean(lua_state_ptr, is_table_protected(table));
 		return 1;
 	}
 }

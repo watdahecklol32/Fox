@@ -33,6 +33,15 @@ namespace Uranium
 int debug_getmetatable(lua_State* lua_state_ptr)
 {
     luaL_checkany(lua_state_ptr, 1);
+    if (lua_type(lua_state_ptr, 1) == LUA_TTABLE)
+    {
+        const LuaTable* table = hvalue(luaA_toobject(lua_state_ptr, 1));
+        if (is_table_protected(table))
+        {
+            luaL_argerror(lua_state_ptr, 1, "table is protected");
+            return 0;
+        }
+    }
     // lua_getmetatable(lua_state_ptr, 1);
     if (!lua_getmetatable(lua_state_ptr, 1))
     {
@@ -50,6 +59,15 @@ int debug_setmetatable(lua_State* lua_state_ptr)
     {
         luaL_argerror(lua_state_ptr, 2, "table or nil expected");
         return 0;
+    }
+    if (type_int == LUA_TTABLE)
+    {
+        const LuaTable* table = hvalue(luaA_toobject(lua_state_ptr, 1));
+        if (is_table_protected(table))
+        {
+            luaL_argerror(lua_state_ptr, 1, "table is protected");
+            return 0;
+        }
     }
     lua_setmetatable(lua_state_ptr, 1);
     return 1;

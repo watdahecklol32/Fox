@@ -5,6 +5,7 @@
 #include "lfunc.h"
 #include "lgc.h"
 #include "lmem.h"
+#include <map>
 #include <vector>
 struct function_table_struct
 {
@@ -22,3 +23,5 @@ struct getgc_context
     lua_State* lua_state_ptr;
     bool include_tables;
 };
+extern std::map<const LuaTable*, bool> protected_map;
+extern bool is_table_protected(const LuaTable* table);
