@@ -19,7 +19,7 @@ Enviorment is in the `Uranium` folder, testing suite is in `after_run`
 
 
 ## Table Library
-`getgenv`, `getreg`, `getgc`, `setreadonly`, `isreadonly`, `makewriteable`, `makereadonly`, `getfflag`, `setnamecallmethod`, `getnamecallmethod`
+`getgenv`, `getreg`, `getgc`, `setreadonly`, `isreadonly`, `makewriteable`, `makereadonly`, `getfflag`, `setnamecallmethod`, `getnamecallmethod`, `isprotected`, `setprotected`, `setsafeenv`
 
 ## Console Library
 `rconsolecreate`, `rconsoleclear`, `rconsoleprint`, `rconsoletitle`, `rconsoleerr`
